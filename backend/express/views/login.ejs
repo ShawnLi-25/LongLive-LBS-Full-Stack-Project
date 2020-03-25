@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Login</title>
+    <link href="/css/login.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="login">
+    <div class="message">User Login</div>
+
+    <form method="post">
+        <input name="action" value="login" type="hidden">
+        <input name="username" placeholder="Username" required="" type="text">
+        <hr class="hr15">
+        <input name="password" placeholder="Password" required="" type="password">
+        <hr class="hr15">
+        <input value="Login" style="width:100%;" type="submit">
+        <hr class="hr20">
+        <div id="show" align="center"></div>
+    </form>
+</div>
+
+<script>
+    var failure = <%= flag %>;
+    if(failure == 1) document.getElementById("show").innerText = "Fail！";
+</script>
+</body>
+</html>
