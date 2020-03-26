@@ -10,6 +10,7 @@ npm-debug.*
 web-build/
 web-report/
 .idea
+data/
 
 # macOS
 .DS_Store
