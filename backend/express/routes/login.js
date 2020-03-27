@@ -36,8 +36,7 @@ passport.use('local-login', new LocalStrategy({
         passReqToCallback : true
     },
     function(req, username, password, done) {
-        alert(username);
-        alert(password);
+
         connection.query("SELECT * FROM `users` WHERE `username` = '" + username + "'",function(err, rows) {
             if (err)
                 return done(err);
