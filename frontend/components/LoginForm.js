@@ -8,7 +8,7 @@
 
 import React, { Component } from 'react';
 import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
-const server = new Request("http://ec2-3-21-169-166.us-east-2.compute.amazonaws.com:3000/login");
+const serverURL = "http://ec2-3-21-169-166.us-east-2.compute.amazonaws.com:3000/login";
 
 
 export default class LoginForm extends Component {
@@ -33,13 +33,12 @@ export default class LoginForm extends Component {
             email: email,
             password: password
         }
-        
-        if (this.props.type !== 'Login') {
-            AsyncStorage.setItem('loginDetails', JSON.stringify(loginDetails));
-            Keyboard.dismiss();
+        // if (this.props.type !== 'Login') {
+            // AsyncStorage.setItem('loginDetails', JSON.stringify(loginDetails));
+            // Keyboard.dismiss();
             // alert("You successfully registered. Email: " + email + ' password: ' + password);
             // this.login();
-        }
+        // }
         // else if (this.props.type == 'Login') {
             // try {
             //     let loginDetails = await AsyncStorage.getItem('loginDetails');
@@ -55,16 +54,22 @@ export default class LoginForm extends Component {
             //     alert(error);
             // }
         // }
-        
-        server.method = 'POST';
-        server.body = JSON.stringify(loginDetails);
-        alert(server.body);
-        fetch(server).then(response => {
-            alert(response.status);
+        fetch(serverURL, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+            }),
+        }).then(response => {
             if (response.status == 200) {
                 this.props.navigation.navigate("MapPage");
             }
-        })
+        }) 
+        this.props.navigation.navigate("MapPage");
     }
     render() {
         return (
