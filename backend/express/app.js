@@ -9,6 +9,7 @@ var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var passport = require("passport");
 const { v4: uuidv4 } = require('uuid');
+var passwordHash = require('password-hash');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -28,8 +29,7 @@ app.use(session({
   store: new FileStore(),
   secret: 'random string',
   resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 60000 }
+  saveUninitialized: true
 }));
 
 app.use(logger('dev'));
