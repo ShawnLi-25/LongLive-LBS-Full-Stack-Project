@@ -43,7 +43,6 @@ passport.use('local-login', new LocalStrategy({
         passReqToCallback : true
     },
     function(req, email, password, done) {
-
         connection.query("SELECT * FROM users WHERE email = '" + email + "'",function(err, rows) {
             if (err)
                 return done(err);
@@ -86,7 +85,7 @@ router.get('/', function(req, res, next) {
 
 /* Deal with login request */
 router.post('/', function(req, res, next) {
-    passport.authenticate('local-login', (err, user, info) => {
+    passport.authenticate('local-login', { session: false }, (err, user, info) => {
         if (info) { return res.send(info.message); }
         if (err) { return next(err); }
 
@@ -99,7 +98,7 @@ router.post('/', function(req, res, next) {
             });
             // return res.redirect('/admin');
         }
-    })(req, res, next);
+    }) (req, res, next);
 });
 
 module.exports = app;

@@ -17,6 +17,7 @@
     "json-server": "^0.16.1",
     "morgan": "~1.9.1",
     "mysql": "^2.18.1",
+    "nodemon": "^2.0.2",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "password-hash": "^1.2.2",

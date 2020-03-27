@@ -8,11 +8,11 @@ var query = {
     createUsers:
         `create table if not exists users (
             id int(5) AUTO_INCREMENT PRIMARY KEY,
-            username varchar(20) not null,
-            email varchar(20) not null,
-            password varchar(20) not null,
-            mobile int(11) not null
-        ) AUTO_INCREMENT=4;`,
+            username varchar(20),
+            email varchar(50) not null,
+            password varchar(50) not null,
+            mobile int(11)
+        ) AUTO_INCREMENT=2;`,
     createEvents:
         `create table if not exists events (
             EventID int unsigned primary key,

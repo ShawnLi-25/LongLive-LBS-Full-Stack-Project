@@ -34,9 +34,4 @@ router.get('/loadDB', function(req, res, next) {
   accessDB.load(req, res, next);
 });
 
-router.get('/test', function(req, res, next) {
-  console.log("SessionID is" + req.sessionID);
-  accessDB.query(req, res, next);
-});
-
 module.exports = app;
