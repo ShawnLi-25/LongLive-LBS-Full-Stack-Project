@@ -8,7 +8,7 @@
 
 import React, { Component } from 'react';
 import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
-const server = new Request("http://ec2-3-21-126-156.us-east-2.compute.amazonaws.com:3000/login");
+const server = new Request("http://ec2-3-21-169-166.us-east-2.compute.amazonaws.com:3000/login");
 
 
 export default class LoginForm extends Component {
@@ -27,7 +27,7 @@ export default class LoginForm extends Component {
         }
     }
 
-    saveData = async () => {
+    saveData = () => {
         const { email, password } = this.state;
         let loginDetails = {
             email: email,
@@ -37,38 +37,35 @@ export default class LoginForm extends Component {
         if (this.props.type !== 'Login') {
             AsyncStorage.setItem('loginDetails', JSON.stringify(loginDetails));
             Keyboard.dismiss();
-            alert("You successfully registered. Email: " + email + ' password: ' + password);
-            this.login();
+            // alert("You successfully registered. Email: " + email + ' password: ' + password);
+            // this.login();
         }
-        else if (this.props.type == 'Login') {
-            try {
-                let loginDetails = await AsyncStorage.getItem('loginDetails');
-                let ld = JSON.parse(loginDetails);
-                if (ld.email != null && ld.password != null) {
-                    if (ld.email == email && ld.password == password) {
-                        alert('Go in!');
-                    } else {
-                        alert('Email and Password does not exist!');
-                    }
-                }
-            } catch (error) {
-                alert(error);
-            }
-        }
+        // else if (this.props.type == 'Login') {
+            // try {
+            //     let loginDetails = await AsyncStorage.getItem('loginDetails');
+            //     let ld = JSON.parse(loginDetails);
+            //     if (ld.email != null && ld.password != null) {
+            //         if (ld.email == email && ld.password == password) {
+            //             alert('Go in!');
+            //         } else {
+            //             alert('Email and Password does not exist!');
+            //         }
+            //     }
+            // } catch (error) {
+            //     alert(error);
+            // }
+        // }
+        
         server.method = 'POST';
         server.body = JSON.stringify(loginDetails);
+        alert(server.body);
         fetch(server).then(response => {
-            if (response.status !== 200) {
-                alert('connection failed');
+            alert(response.status);
+            if (response.status == 200) {
+                this.props.navigation.navigate("MapPage");
             }
         })
     }
-
-    onPressMerge = async () => {
-        this.saveData;
-        this.props.navigation.navigate("MapPage");
-    }
-
     render() {
         return (
             <View style={styles.container}>
@@ -94,7 +91,7 @@ export default class LoginForm extends Component {
                         title="Log In"
                         color='white'
                         style={styles.buttonText}
-                        onPress={this.onPressMerge}
+                        onPress={this.saveData}
                     />
                 </TouchableOpacity>
             </View>
