@@ -2,9 +2,11 @@ import React from 'react';
 import MapView from 'react-native-maps';
 import { Header, Button, Icon } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight } from 'react-native';
-import WebView from 'react-native-webview';
 
 export default class MapPage extends React.Component {
+    static navigationOptions = {
+        title: 'MapPage',
+    }
     state = { myWebView: false }
     render() {
         return (

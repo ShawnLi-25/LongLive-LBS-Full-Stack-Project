@@ -4,7 +4,7 @@
 
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
-import { Actions } from 'react-native-router-flux';
+// import { Actions } from 'react-native-router-flux';
 
 export default class Form extends Component {
 
@@ -79,6 +79,7 @@ export default class Form extends Component {
                     ref={(input) => this.password = input}
                 />
                 <TouchableOpacity style={styles.button}>
+                    {/* <Text style={styles.buttonText} onPress={this.saveData}>{this.props.type}</Text> */}
                     <Text style={styles.buttonText} onPress={this.saveData}>{this.props.type}</Text>
                 </TouchableOpacity>
             </View>
