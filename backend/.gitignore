@@ -11,6 +11,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 .idea
+../.idea
 data/
 
 # macOS

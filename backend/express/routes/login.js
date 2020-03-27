@@ -93,7 +93,11 @@ router.post('/', function(req, res, next) {
         if(user) {
             console.log("Login successfully");
             // Todo: Route to Map
-            return res.redirect('/admin');
+            return res.json({
+                code:'200',
+                msg: 'Login Successfully'
+            });
+            // return res.redirect('/admin');
         }
     })(req, res, next);
 });
