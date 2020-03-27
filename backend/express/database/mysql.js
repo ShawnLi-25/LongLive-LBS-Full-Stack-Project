@@ -40,12 +40,29 @@ module.exports = {
         });
     },
 
+    query: function (req, res, next) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return console.error('Connection Error:' + err.message);
+            }
+
+            connection.query(query.queryTest, function (err, result) {
+                if(err) {
+                    return console.error('SQL Execution Error:' + err.message);
+                }
+
+                jsonWrite(res, result);
+                connection.release();
+            });
+        });
+    },
+
     create: function (req, res, next) {
         pool.getConnection(function (err, connection) {
             if (err) {
                 return console.error('Connection Error:' + err.message);
             }
-            connection.query(query.createEvents, function (err, result) {
+            connection.query(query.createUsers, function (err, result) {
                 if(err) {
                     return console.error('SQL Execution Error:' + err.message);
                 }
@@ -85,6 +102,7 @@ module.exports = {
     }
 };
 
+/* Write result to json object */
 var jsonWrite = function (res, ret) {
     if(typeof ret === 'undefined') {
         res.json({
@@ -95,47 +113,3 @@ var jsonWrite = function (res, ret) {
         res.json(ret);
     }
 };
-/*
-connection.connect(function (err) {
-    if (err) {
-        return console.error('Connection Error:' + err.message);
-    }
-
-    var query = {
-        create:
-            `create table if not exists events (
-            eventID int primary key auto_increment,
-            time varchar(255) not null,
-            location varchar(255) not null,
-            description varchar(255),
-            arrest enum('Yes', 'No') not null,
-            source enum('Official', 'Report') not null
-            )`,
-        load:
-            'LOAD DATA INFILE \'./data/events.csv\' \n' +
-            'INTO TABLE discounts \n' +
-            'FIELDS TERMINATED BY \',\' \n' +
-            'ENCLOSED BY \'"\'\n' +
-            'LINES TERMINATED BY \'\\n\'\n' +
-            'IGNORE 1 ROWS;'
-    };
-
-    connection.query(query.create, function (err, results, fields) {
-        if (err) {
-            console.log('Query Error:' + err.message);
-        }
-    });
-
-    connection.query(query.load, function (err, results, fields) {
-        if (err) {
-            console.log('Query Error:' + err.message);
-        }
-    });
-
-    connection.end(function (err) {
-        if (err) {
-            return console.error('End Error:' + err.message);
-        }
-    });
-});
-*/

@@ -1,4 +1,7 @@
-node_modules/**/*
+express/node_modules/**/*
+./express/cookie.txt
+./express/sessions
+./express/config
 .expo/*
 npm-debug.*
 *.jks
@@ -7,8 +10,6 @@ npm-debug.*
 *.key
 *.mobileprovision
 *.orig.*
-web-build/
-web-report/
 .idea
 data/
 

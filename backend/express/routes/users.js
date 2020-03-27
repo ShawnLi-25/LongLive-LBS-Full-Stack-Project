@@ -1,13 +1,18 @@
 var express = require('express');
+const { v4: uuidv4 } = require('uuid');
+
+var accessDB = require('../database/mysql');
+var app = express();
 var router = express.Router();
 
-var accessDB = require('../database/dbQuery');
+app.use(router);
 
-//Proide Endpoint here!
+//Provide Endpoint here!
 
-/* Sanity Test. */
-router.get('/', function(req, res, next) {
-  res.send('Here is users root');
+/* Sanity Check. */
+router.get('/', function(req, res) {
+  console.log(req.sessionID);
+  res.send('Welcome to the home page of CS411 LongLive!');
 });
 
 /* Create Database */
@@ -25,4 +30,4 @@ router.get('/loadDB', function(req, res, next) {
   accessDB.load(req, res, next);
 });
 
-module.exports = router;
+module.exports = app;

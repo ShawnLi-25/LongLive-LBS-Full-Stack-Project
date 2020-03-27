@@ -1,12 +1,13 @@
 var express = require('express');
-var getRouter = express.Router();
 
-getRouter.get('/admin', function (req, res) {
+var router = express.Router();
+
+router.get('/', function (req, res) {
     if(req.cookies.authorized) {
-        res.render('admin', {content: 'Login with user cookie!'});
+        res.render('admin', {content: 'Login successfully!'});
     } else {
         res.redirect('/login');
     }
 });
 
-exports.get = getRouter;
+module.exports = router;
