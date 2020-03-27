@@ -35,6 +35,17 @@ export default class MapPage extends React.Component {
             ]
         })
     }
+    onMarkerDragEnd = (coord, index) => {
+        const { latLng } = coord;
+        const lat = latLng.lat();
+        const lng = latLng.lng();
+        alert("drug!");
+        this.setState(prevState => {
+            const markers = [...this.state.markers];
+            markers[index] = { ...markers[index], position: { lat, lng } };
+            return { markers };
+        });
+    };
     render() {
         return (
             <View style={styles.container}>
@@ -53,8 +64,12 @@ export default class MapPage extends React.Component {
                     onRegionChange={this.onRegionChange}
                     onPress={this.createMarkerOnPress}
                 >
-                {this.state.markers.map(marker => (
-                    <Marker {...marker}/>
+                {this.state.markers.map((marker, index) => (
+                    <Marker
+                        draggable 
+                        position={this.position}
+                        onDragEnd={(e) => this.setState({ x: e.nativeEvent.coordinate })}
+                    {...marker}/>
                 ))}
                 </MapView>
             </View>
