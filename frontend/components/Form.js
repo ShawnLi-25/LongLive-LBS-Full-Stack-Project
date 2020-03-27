@@ -27,7 +27,7 @@ export default class Form extends Component {
 
         if (this.props.type !== 'Login') {
             AsyncStorage.setItem('loginDetails', JSON.stringify(loginDetails));
-
+            
             Keyboard.dismiss();
             alert("You successfully registered. Email: " + email + ' password: ' + password);
             this.login();

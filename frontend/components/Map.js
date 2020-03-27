@@ -1,50 +1,62 @@
 import React from 'react';
-import MapView from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import { Header, Button, Icon } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight } from 'react-native';
 
 export default class MapPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            region: {
+                latitude: 41.88825,
+                longitude: -87.6324,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+            },
+            markers: [],
+            index: 0,
+        }
+        this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
+    }
     static navigationOptions = {
         title: 'MapPage',
     }
-    state = { myWebView: false }
+    onRegionChange = (region) => {
+        this.setState({ region })
+    }
+
+    createMarkerOnPress = (pressedPosition) => {
+        this.setState({
+            markers: [
+                ...this.state.markers,
+                {
+                    coordinate: pressedPosition.nativeEvent.coordinate,
+                }
+            ]
+        })
+    }
     render() {
         return (
             <View style={styles.container}>
-                <Header
-                    containerStyle={{ height: 100 }}
-                    backgroundColor={'black'}
-                    // leftComponent={{ icon: 'menu', color: '#fff' }}
-                    leftComponent={
-                        <TouchableHighlight>
-                            <Icon
-                                // raised
-                                name='home'
-                                type='font-awesome'
-                                color='#f50'
-                                onPress={() => { alert("Show User Profile"); }} />
-                        </TouchableHighlight>
-                    }
-                    centerComponent={{ text: 'MY TITLE', style: { color: '#fff' } }}
-                    rightComponent={
-                        <TouchableHighlight>
-                            <Icon
-                                // raised
-                                name='heart'
-                                type='font-awesome'
-                                color='#f50'
-                                onPress={() => { this.setState({ myWebView: true }) }} />
-                        </TouchableHighlight>
-                    }>
-                </Header>
                 <MapView
+                    showsUserLocation
+                    showsMyLocationButton
+                    showsTraffic
                     style={styles.mapStyle}
                     initialRegion={{
                         latitude: 41.88825,
                         longitude: -87.6324,
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421,
-                    }} />
+                    }} 
+                    region={this.state.region}
+                    onRegionChange={this.onRegionChange}
+                    onPress={this.createMarkerOnPress}
+                >
+                {this.state.markers.map(marker => (
+                    <Marker {...marker}/>
+                ))}
+                </MapView>
             </View>
         );
     }
@@ -60,13 +72,7 @@ const styles = StyleSheet.create({
     mapStyle: {
         flex: 0,
         width: Dimensions.get('window').width,
-        height: 500
-        // height: Dimensions.get('window').height,
-    },
-    header: {
-        flex: 1,
-        width: Dimensions.get('window').width,
-        height: 100,
+        height: Dimensions.get('window').height
     },
     alert_button: {
         color: 'red'
@@ -74,5 +80,15 @@ const styles = StyleSheet.create({
     userProfileButton: {
         flex: 0,
         color: 'pink',
-    }
+    },
+    markerWrap: {
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    marker: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: "rgba(130,4,150, 0.9)",
+    },
 });

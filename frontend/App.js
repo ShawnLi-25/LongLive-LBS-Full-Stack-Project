@@ -15,7 +15,6 @@ function App() {
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginForm} />
         <Stack.Screen name="MapPage" component={MapPage} />
-        {/* <Stack.Screen name="Details" component={DetailsScreen} /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
