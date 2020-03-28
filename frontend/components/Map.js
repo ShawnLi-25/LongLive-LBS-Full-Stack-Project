@@ -2,6 +2,7 @@ import React from 'react';
 import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
 import { Header, Button, Icon } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight } from 'react-native';
+import data from "../Data/test.json";
 
 export default class MapPage extends React.Component {
     constructor(props) {
@@ -15,6 +16,7 @@ export default class MapPage extends React.Component {
             },
             markers: [],
             index: 0,
+            pointList: this.generateData(),
         }
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
     }
@@ -40,26 +42,34 @@ export default class MapPage extends React.Component {
         const { latLng } = coord;
         const lat = latLng.lat();
         const lng = latLng.lng();
-        alert("drug!");
         this.setState(prevState => {
             const markers = [...this.state.markers];
             markers[index] = { ...markers[index], position: { lat, lng } };
             return { markers };
         });
     };
+
+    generateData = () => {
+        let points = [];
+        for (var i = 0; i < data.data.length; i++) {
+            var point = {
+                latitude: Number(data.data[i][0]), 
+                longitude: Number(data.data[i][1]), 
+                weight: Number(4)
+            };
+            points.push(point);
+        }
+        try {
+            this.setState({ pointList: points }, function() {
+                console.log("after set state");
+            });
+        } catch (err) {
+            alert("err");
+        }
+        return points;
+    }
+
     render() {
-        let points = [{ latitude: 41.88825, longitude: -87.6324, weight: 1 },
-                      { latitude: 42.88825, longitude: -87.6324, weight: 1 },
-                      { latitude: 43.88825, longitude: -87.6324, weight: 1 },
-                      { latitude: 44.88825, longitude: -87.6324, weight: 1 },
-                      { latitude: 45.88825, longitude: -87.6324, weight: 1 },
-                      { latitude: 6.830766, longitude: 79.861319, weight: 1 },
-                      { latitude: 6.827766, longitude: 79.861319, weight: 1 },
-                      { latitude: 6.82076681, longitude: 79.871319, weight: 1 },
-                      { latitude: 6.82076681, longitude: 79.861319, weight: 1 },
-                      { latitude: 6.81076681, longitude: 79.861319, weight: 1 },
-                      { latitude: 6.83776681, longitude: 79.869319, weight: 1 },
-                      { latitude: 6.83276681, longitude: 79.869319, weight: 1 },]
         return (
             <View style={styles.container}>
                 <MapView
@@ -85,12 +95,12 @@ export default class MapPage extends React.Component {
                         {...marker}/>
                     ))}
                     <Heatmap 
-                        points={points}
-                        opacity={1}
-                        radius={200}
+                        points={this.state.pointList}
+                        opacity={7}
+                        radius={50}
                         maxIntensity={100}
-                        gradientSmoothing={10}
-                        heatmapMode={"POINTS_DENSITY"}>
+                        heatmapMode={"POINTS_DENSITY"}
+                        >
                     </Heatmap>
                 </MapView>
             </View>
