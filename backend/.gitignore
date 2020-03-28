@@ -1,7 +1,9 @@
 express/node_modules/**/*
-./express/cookie.txt
-./express/sessions
-./express/config
+express/package.json
+express/package-lock.json
+express/cookie.txt
+express/sessions
+express/config
 .expo/*
 npm-debug.*
 *.jks
@@ -12,6 +14,7 @@ npm-debug.*
 *.orig.*
 .idea
 data/
+
 
 # macOS
 .DS_Store
