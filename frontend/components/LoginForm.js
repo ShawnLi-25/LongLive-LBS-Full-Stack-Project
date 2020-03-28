@@ -54,21 +54,21 @@ export default class LoginForm extends Component {
             //     alert(error);
             // }
         // }
-        fetch(serverURL, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-            }),
-        }).then(response => {
-            if (response.status == 200) {
-                this.props.navigation.navigate("MapPage");
-            }
-        }) 
+        // fetch(serverURL, {
+        //     method: 'POST',
+        //     headers: {
+        //         Accept: 'application/json',
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //         email: email,
+        //         password: password,
+        //     }),
+        // }).then(response => {
+        //     if (response.status == 200) {
+        //         this.props.navigation.navigate("MapPage");
+        //     }
+        // }) 
         this.props.navigation.navigate("MapPage");
     }
     render() {
