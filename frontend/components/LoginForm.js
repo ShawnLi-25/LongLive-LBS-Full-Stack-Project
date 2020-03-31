@@ -1,34 +1,31 @@
-/**
- * Source:
- * https://kimeowgee.com/2018/10/react-native-user-login-sign-up-example-tutorial/
- * Modified
- *
- */
-
 
 import React, { Component } from 'react';
 import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
 const serverURL = "http://ec2-3-21-169-166.us-east-2.compute.amazonaws.com:3000/login";
-
+import AppContainer from './StarterPage.js';
 
 export default class LoginForm extends Component {
-    static navigationOptions = {
-        title: "Login",
-        headerStyle: {
-            backgroundColor: '#03A9F4',
-        }
-    }
+    // static navigationOptions = {
+    //     title: "Login",
+    //     headerStyle: {
+    //         backgroundColor: '#03A9F4',
+    //     }
+    // }
 
     constructor(props) {
         super(props);
         this.state = {
             email: '',
-            password: ''
+            password: '',
+            navigation: this.props.navigation,
         }
+    }
+    componentWillMount = () => {
+        this.setState({ navigation: this.props.navigation})
     }
 
     saveData = () => {
-        const { email, password } = this.state;
+        const { email, password, navigation } = this.state;
         let loginDetails = {
             email: email,
             password: password
@@ -54,22 +51,22 @@ export default class LoginForm extends Component {
             //     alert(error);
             // }
         // }
-        fetch(serverURL, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-            }),
-        }).then(response => {
-            if (response.status == 200) {
-                this.props.navigation.navigate("MapPage");
-            }
-        }) 
-        this.props.navigation.navigate("MapPage");
+        // fetch(serverURL, {
+        //     method: 'POST',
+        //     headers: {
+        //         Accept: 'application/json',
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //         email: email,
+        //         password: password,
+        //     }),
+        // }).then(response => {
+        //     if (response.status == 200) {
+        //         this.props.navigation.navigate("MapPage");
+        //     }
+        // }) 
+        navigation.navigate("Map");
     }
     render() {
         return (
