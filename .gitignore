@@ -22,7 +22,7 @@
 /backend/express/package-lock.json
 /backend/express/cookie.txt
 /backend/express/sessions
-/backend/express/config
+/backend/express/config/mysqlConn.js
 /backend/.expo/*
 /backend/npm-debug.*
 /backend/*.jks

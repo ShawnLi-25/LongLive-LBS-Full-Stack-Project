@@ -15,13 +15,26 @@ router.get('/', function(req, res, next) {
 });
 
 /* Insert Record to Database */
-router.get('/insertDB', function(req, res, next) {
+router.get('/report', function(req, res, next) {
   accessDB.insert(req, res, next);
 });
 
+/* Get Nearby data for Heatmap */
+router.get('/getNearbyLocs', function(req, res, next) {
+  accessDB.getNearbyLocs(req, res, next => {
+    console.log(res);
+    if(res)
+      return res;
+  }) (req, res, next);
+});
+
 /* Query Database */
-router.get('/queryDB', function(req, res, next) {
-  accessDB.query(req, res, next);
+router.get('/getNearbyEvents', function(req, res, next) {
+  accessDB.getNearbyEvents(req, res, next => {
+    console.log(res);
+    if(res)
+      return res;
+  });
 });
 
 /* Create Database */
