@@ -1,10 +1,33 @@
 var query = {
-    insert:
-        'insert into events(EventID, Time, Location, Type, Arrest, Source, Description) values(?, ?, ?, ?, ?, ?, ?)',
+    insertEvent:
+        'INSERT INTO events(Time, Location, Type, Arrest, Source, Description) ' +
+        'VALUES (?, ?, ?, ?, ?, ?)',
+    insertTime:
+        'INSERT IGNORE INTO times(Time, Year, Month, Date, Hour, Minute) ' +
+        'VALUES (?, ?, ?, ?, ?, ?)',
+    insertLoc:
+        'INSERT INTO locations(Location, Latitude, Longitude, Block, Beat, District, Ward, CommunityArea) ' +
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)' +
+        'ON DUPLICATE KEY UPDATE Block = VALUES(Block), Beat = VALUES(Beat), District = VALUES(District), Ward = VALUES(Ward), CommunityArea = VALUES(CommunityArea)',
+    getNearbyLocs:
+        'SELECT locations.Latitude, locations.Longitude, (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) as square ' +
+        'FROM locations ' +
+        'WHERE (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) < ? ' +
+        'ORDER BY square ' +
+        'LIMIT 10',
+    getNearbyEvents:
+        'SELECT E.Time, E.Type, E.Description, (POWER(? - L.Latitude, 2) + POWER(? - L.Longitude, 2)) as square ' +
+        'FROM events E, locations L ' +
+        'WHERE E.Location = L.Location AND ' +
+        '(POWER(? - L.Latitude, 2) + POWER(? - L.Longitude, 2)) < ? ' +
+        'ORDER BY square ' +
+        'LIMIT ?',
     queryAll:
-        'select * from events',
-    queryTest:
-        'select * from events limit 5',
+        'SELECT * FROM events',
+    login:
+        'SELECT * FROM users WHERE email = ?',
+    register:
+        'INSERT INTO users(id, email, password) VALUES (DEFAULT, ?, ?)',
     createUsers:
         `create table if not exists users (
             id int(5) AUTO_INCREMENT PRIMARY KEY,
@@ -12,15 +35,15 @@ var query = {
             email varchar(50) not null,
             password varchar(50) not null,
             mobile int(11)
-        ) AUTO_INCREMENT=2;`,
-    createEvents:
+        ) AUTO_INCREMENT = 2;`,
+    createEvent:
         `create table if not exists events (
-            EventID int unsigned primary key,
+            EventID int unsigned AUTO_INCREMENT PRIMARY KEY,
             Time varchar(255) not null,
             Location varchar(255) not null,
             Type varchar(255) not null,
-            Description varchar(255) not null,
-            Arrest enum('TRUE', 'FALSE') not null,
+            Description varchar(255),
+            Arrest enum('TRUE', 'FALSE'),
             Source enum('Official', 'Report') not null,
             FOREIGN KEY (Time) REFERENCES times(Time) ON DELETE CASCADE ON UPDATE CASCADE,
             FOREIGN KEY (Location) REFERENCES locations(Location) ON DELETE CASCADE ON UPDATE CASCADE
@@ -30,20 +53,20 @@ var query = {
             Time varchar(255) PRIMARY KEY,
             Year int unsigned not null,
             Month int unsigned not null,
-            Day int unsigned not null,            
+            Date int unsigned not null,            
             Hour int unsigned not null,
             Minute int unsigned not null
             )`,
     createLoc:
         `create table if not exists locations (
             Location varchar(255) PRIMARY KEY,
-            Block varchar(255) not null,
-            Beat int unsigned not null,
-            District int unsigned not null,
-            Ward int unsigned not null,
-            CommunityArea int unsigned not null,
-            Longitude varchar(255) not null,
-            Latitude varchar(255) not null
+            Block varchar(255),
+            Beat int unsigned,
+            District int unsigned,
+            Ward int unsigned,
+            CommunityArea int unsigned,
+            Longitude float not null,
+            Latitude float not null
             )`,
     createMap:
         `create table if not exists map (
@@ -53,21 +76,21 @@ var query = {
             PRIMARY KEY (Location, LocationDescription)  
             )`,
     loadEvents:
-        'LOAD DATA LOCAL INFILE \'/mnt/d/react-native-project/node_modules/express-app/database/data/events.csv\' \n' +
+        'LOAD DATA LOCAL INFILE \'/mnt/d/20Spring/CS411/LongLive/backend/data/srcdata/events.csv\' \n' +
         'INTO TABLE events \n' +
         'FIELDS TERMINATED BY \',\' \n' +
         'ENCLOSED BY \'"\'\n' +
         'LINES TERMINATED BY \'\\n\'\n' +
         'IGNORE 1 ROWS;',
     loadLocations:
-        'LOAD DATA LOCAL INFILE \'/mnt/d/react-native-project/node_modules/express-app/database/data/locations.csv\' \n' +
+        'LOAD DATA LOCAL INFILE \'/mnt/d/20Spring/CS411/LongLive/backend/data/srcdata/locations.csv\' \n' +
         'INTO TABLE locations \n' +
         'FIELDS TERMINATED BY \',\' \n' +
         'ENCLOSED BY \'"\'\n' +
         'LINES TERMINATED BY \'\\n\'\n' +
         'IGNORE 1 ROWS;',
     loadTimes:
-        'LOAD DATA LOCAL INFILE \'/mnt/d/react-native-project/node_modules/express-app/database/data/times.csv\' \n' +
+        'LOAD DATA LOCAL INFILE \'/mnt/d/20Spring/CS411/LongLive/backend/data/srcdata/times.csv\' \n' +
         'INTO TABLE times \n' +
         'FIELDS TERMINATED BY \',\' \n' +
         'ENCLOSED BY \'"\'\n' +
