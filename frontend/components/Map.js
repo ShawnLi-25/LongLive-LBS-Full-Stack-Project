@@ -3,7 +3,7 @@ import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
 import { Header, Button, Icon } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight } from 'react-native';
 import data from "../Data/test.json";
-
+import MenuIcon from "./MenuIcon.js";
 export default class MapPage extends React.Component {
     constructor(props) {
         super(props);
@@ -17,15 +17,20 @@ export default class MapPage extends React.Component {
             markers: [],
             index: 0,
             pointList: this.generateData(),
+            navigation: this.props.navigation,
         }
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
     }
-    static navigationOptions = {
-        title: 'MapPage',
-    }
+    // static navigationOptions = {
+    //     title: 'MapScreen',
+    // }
     
     onRegionChange = (region) => {
         this.setState({ region })
+    }
+
+    componentWillMount = () => {
+        this.setState({ navigation: this.props.navigation })
     }
 
     createMarkerOnPress = (pressedPosition) => {
@@ -70,13 +75,14 @@ export default class MapPage extends React.Component {
     }
 
     render() {
+        // const { navigation } = this.state.navigation;
         return (
-            <View style={styles.container}>
+            <View style={{ flex: 1 }}>
                 <MapView
                     provider={PROVIDER_GOOGLE}
                     showsUserLocation
                     showsMyLocationButton
-                    style={styles.mapStyle}
+                    style={{ flex: 1 }}
                     initialRegion={{
                         latitude: 41.88825,
                         longitude: -87.6324,
@@ -86,6 +92,7 @@ export default class MapPage extends React.Component {
                     region={this.state.region}
                     onRegionChange={this.onRegionChange}
                     onPress={this.createMarkerOnPress}
+                    onPress={(event) => console.log(event.nativeEvent.coordinate)}
                     >
                     {this.state.markers.map((marker, index) => (
                         <Marker
@@ -100,9 +107,14 @@ export default class MapPage extends React.Component {
                         radius={50}
                         maxIntensity={100}
                         heatmapMode={"POINTS_DENSITY"}
-                        >
+                    >
                     </Heatmap>
                 </MapView>
+                <View style={{
+                    position: 'absolute',//use absolute position to show button on top of the map
+                    top: '50%', //for center align
+                    alignSelf: 'flex-end' //for align to right
+                }}><MenuIcon navigation={this.state.navigation}/></View>
             </View>
         );
     }
