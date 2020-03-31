@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var passwordHash = require('password-hash');
+var query = require('../database/dbQuery');
 
 var app = express();
 var router = express.Router();
@@ -22,18 +23,15 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 passport.serializeUser(function(user, done) {
-    console.log(user);
     done(null, user.id);
 });
 
 passport.deserializeUser(function(id, done) {
-    done(null, id);
-    /*
-        connection.query("SELECT * FROM users WHERE id = '" + id + "'",function(err, rows){
-            if(rows.length)
-                done(null, rows[0]);
-        });
-    */
+    // done(null, id);
+    connection.query("SELECT * FROM users WHERE id = '" + id + "'",function(err, rows){
+        if(rows.length)
+            done(null, rows[0]);
+    });
 });
 
 /* login strategy */
@@ -43,33 +41,33 @@ passport.use('local-login', new LocalStrategy({
         passReqToCallback : true
     },
     function(req, email, password, done) {
-        connection.query("SELECT * FROM users WHERE email = '" + email + "'",function(err, rows) {
+        connection.query(query.login, [email],function(err, rows) {
             if (err)
                 return done(err);
 
-            if(rows.length && passwordHash.verify(password, rows[0].password)) {
-                return done(null, rows[0]);
-            }
-
-            // No such user, automatically register
-            else if (!rows.length) {
-
+            if(rows.length) {
+                if(passwordHash.verify(password, rows[0].password)) {
+                    // Find user, return
+                    return done(null, rows[0]);
+                }
+                else {
+                    // Invalid username password pair
+                    return done(null, false);
+                }
+            } else {
+                // No such user, automatically register
                 const hashedPassword = passwordHash.generate(password);
                 var newUser = new Object();
                 newUser.email = email;
                 newUser.password = hashedPassword;
 
-                const registerQuery = "INSERT INTO users(id, email, password) VALUES (DEFAULT,'" + email +  "', '" + hashedPassword + "')";
-                connection.query(registerQuery, function (err, row) {
+                connection.query(query.register, [email, hashedPassword], function (err, row) {
                     if(err)
                         return done(err);
                     newUser.id = row.insertId;
                     return done(null, newUser);
                 })
             }
-
-            // invalid username password pair
-            return done(null, false);
         });
     }
 ));
@@ -96,7 +94,13 @@ router.post('/', function(req, res, next) {
                 code:'200',
                 msg: 'Login Successfully'
             });
-            // return res.redirect('/admin');
+        } else {
+            // Wrong password
+            console.log("Wrong Password");
+            return res.json({
+                code:'403',
+                msg: 'Wrong Password'
+            });
         }
     }) (req, res, next);
 });

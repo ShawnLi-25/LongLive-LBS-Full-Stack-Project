@@ -6,10 +6,9 @@ var logger = require('morgan');
 var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
 var session = require('express-session');
-var FileStore = require('session-file-store')(session);
 var passport = require("passport");
 const { v4: uuidv4 } = require('uuid');
-//var passwordHash = require('password-hash');
+require('session-file-store')(session);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -26,7 +25,6 @@ app.use(session({
   genid: (req) => {
     return uuidv4()
   },
-  store: new FileStore(),
   secret: 'random string',
   resave: false,
   saveUninitialized: true,
