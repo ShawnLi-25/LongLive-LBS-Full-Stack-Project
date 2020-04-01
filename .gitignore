@@ -11,8 +11,8 @@
 /frontend/*.orig.*
 /frontend/web-build/
 /frontend/web-report/
-/frontend/./package-lock.json
-/frontend/./package.json
+/frontend/package-lock.json
+/frontend/package.json
 
 /frontend/# macOS
 /frontend/.DS_Store
