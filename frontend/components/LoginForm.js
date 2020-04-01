@@ -59,6 +59,7 @@ export default class LoginForm extends Component {
         //         this.props.navigation.navigate("MapPage");
         //     }
         // }) 
+        // this.props.triggerUserUpdate(email);
         navigation.navigate("Map");
     }
     render() {
