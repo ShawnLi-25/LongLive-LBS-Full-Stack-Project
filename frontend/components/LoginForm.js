@@ -5,13 +5,6 @@ const serverURL = "http://ec2-3-21-169-166.us-east-2.compute.amazonaws.com:3000/
 import AppContainer from './StarterPage.js';
 
 export default class LoginForm extends Component {
-    // static navigationOptions = {
-    //     title: "Login",
-    //     headerStyle: {
-    //         backgroundColor: '#03A9F4',
-    //     }
-    // }
-
     constructor(props) {
         super(props);
         this.state = {

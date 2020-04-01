@@ -1,9 +1,10 @@
 import React from 'react';
 import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
-import { Header, Button, Icon } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight } from 'react-native';
 import data from "../Data/test.json";
-import MenuIcon from "./MenuIcon.js";
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 export default class MapPage extends React.Component {
     constructor(props) {
         super(props);
@@ -21,10 +22,7 @@ export default class MapPage extends React.Component {
         }
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
     }
-    // static navigationOptions = {
-    //     title: 'MapScreen',
-    // }
-    
+
     onRegionChange = (region) => {
         this.setState({ region })
     }
@@ -75,7 +73,6 @@ export default class MapPage extends React.Component {
     }
 
     render() {
-        // const { navigation } = this.state.navigation;
         return (
             <View style={{ flex: 1 }}>
                 <MapView
@@ -111,10 +108,15 @@ export default class MapPage extends React.Component {
                     </Heatmap>
                 </MapView>
                 <View style={{
-                    position: 'absolute',//use absolute position to show button on top of the map
-                    top: '50%', //for center align
-                    alignSelf: 'flex-end' //for align to right
-                }}><MenuIcon navigation={this.state.navigation}/></View>
+                    position: 'absolute', //use absolute position to show button on top of the map
+                    top: '0%', 
+                    right: '0%',
+                    flex: 1,
+                }}><Button
+                        onPress={() => { this.props.navigation.openDrawer() }}
+                        type='clear'
+                        icon={<Icon name='face-profile' size='60' />}
+                    /></View>
             </View>
         );
     }
@@ -136,8 +138,9 @@ const styles = StyleSheet.create({
         color: 'red'
     },
     userProfileButton: {
-        flex: 0,
-        color: 'pink',
+        flex: 1,
+        justifyContent: 'flex-end',
+        marginBottom: 36
     },
     markerWrap: {
         alignItems: "center",
@@ -149,4 +152,5 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: "rgba(130,4,150, 0.9)",
     },
+
 });
