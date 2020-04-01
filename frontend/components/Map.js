@@ -90,8 +90,13 @@ export default class MapPage extends React.Component {
                     region={this.state.region}
                     onRegionChange={this.onRegionChange}
                     onPress={this.createMarkerOnPress}
+<<<<<<< HEAD
                     // onPress={(event) => console.log(event.nativeEvent.coordinate)}
                 >
+=======
+                    onPress={(event) => console.log(event.nativeEvent.coordinate)}
+                    >
+>>>>>>> 2af73b0c7e8556ee6eebd7971ab36c734f2778ff
                     {this.state.markers.map((marker, index) => (
                         <Marker
                             draggable 
@@ -108,6 +113,7 @@ export default class MapPage extends React.Component {
                     >
                     </Heatmap>
                 </MapView>
+<<<<<<< HEAD
                 <View style={styles.userProfileButtonContainer}>
                     <Button
                         onPress={() => { this.props.navigation.openDrawer() }}
@@ -115,6 +121,18 @@ export default class MapPage extends React.Component {
                         icon={<Icon name='face-profile' size='60' />}
                     />
                 </View>
+=======
+                <View style={{
+                    position: 'absolute', //use absolute position to show button on top of the map
+                    top: '0%', 
+                    right: '0%',
+                    flex: 1,
+                }}><Button
+                        onPress={() => { this.props.navigation.openDrawer() }}
+                        type='clear'
+                        icon={<Icon name='face-profile' size='60' />}
+                    /></View>
+>>>>>>> 2af73b0c7e8556ee6eebd7971ab36c734f2778ff
             </View>
         );
     }
@@ -135,11 +153,18 @@ const styles = StyleSheet.create({
     alert_button: {
         color: 'red'
     },
+<<<<<<< HEAD
     userProfileButtonContainer: {
         position: 'absolute', //use absolute position to show button on top of the map
         top: '0%',
         right: '0%',
         flex: 1,
+=======
+    userProfileButton: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        marginBottom: 36
+>>>>>>> 2af73b0c7e8556ee6eebd7971ab36c734f2778ff
     },
     markerWrap: {
         alignItems: "center",
