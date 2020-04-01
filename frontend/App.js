@@ -20,6 +20,9 @@ function MapScreen({ navigation }) {
     <MapPage navigation={ navigation }/>
   );
 }
+function SettingScreen({navigation}) {
+  return (<View></View>);
+}
 
 const Drawer = createDrawerNavigator();
 
@@ -28,6 +31,7 @@ function UserProfileDrawer() {
     <Drawer.Navigator>
       <Drawer.Screen name="Login" component={LoginScreen} />
       <Drawer.Screen name="Map" component={MapScreen} />
+      <Drawer.Screen name="Setting" component={SettingScreen} />
     </Drawer.Navigator>
   );
 }

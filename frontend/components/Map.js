@@ -32,6 +32,7 @@ export default class MapPage extends React.Component {
     }
 
     createMarkerOnPress = (pressedPosition) => {
+        console.log("pressed");
         this.setState({
             markers: [
                 ...this.state.markers,
@@ -89,8 +90,8 @@ export default class MapPage extends React.Component {
                     region={this.state.region}
                     onRegionChange={this.onRegionChange}
                     onPress={this.createMarkerOnPress}
-                    onPress={(event) => console.log(event.nativeEvent.coordinate)}
-                    >
+                    // onPress={(event) => console.log(event.nativeEvent.coordinate)}
+                >
                     {this.state.markers.map((marker, index) => (
                         <Marker
                             draggable 
@@ -107,16 +108,13 @@ export default class MapPage extends React.Component {
                     >
                     </Heatmap>
                 </MapView>
-                <View style={{
-                    position: 'absolute', //use absolute position to show button on top of the map
-                    top: '0%', 
-                    right: '0%',
-                    flex: 1,
-                }}><Button
+                <View style={styles.userProfileButtonContainer}>
+                    <Button
                         onPress={() => { this.props.navigation.openDrawer() }}
                         type='clear'
                         icon={<Icon name='face-profile' size='60' />}
-                    /></View>
+                    />
+                </View>
             </View>
         );
     }
@@ -137,10 +135,11 @@ const styles = StyleSheet.create({
     alert_button: {
         color: 'red'
     },
-    userProfileButton: {
+    userProfileButtonContainer: {
+        position: 'absolute', //use absolute position to show button on top of the map
+        top: '0%',
+        right: '0%',
         flex: 1,
-        justifyContent: 'flex-end',
-        marginBottom: 36
     },
     markerWrap: {
         alignItems: "center",
