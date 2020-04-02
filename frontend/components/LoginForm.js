@@ -2,7 +2,6 @@
 import React, { Component } from 'react';
 import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
 const serverURL = "http://ec2-3-21-169-166.us-east-2.compute.amazonaws.com:3000/login";
-import AppContainer from './StarterPage.js';
 
 export default class LoginForm extends Component {
     constructor(props) {
@@ -73,7 +72,6 @@ export default class LoginForm extends Component {
                     selectionColor="#fff"
                     keyboardType="email-address"
                     onSubmitEditing={() => this.password.focus()} />
-
                 <TextInput style={styles.inputBox}
                     onChangeText={(password) => this.setState({ password })}
                     underlineColorAndroid='rgba(0,0,0,0)'

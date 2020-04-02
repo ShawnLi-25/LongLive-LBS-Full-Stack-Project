@@ -43,6 +43,7 @@ export default class MapPage extends React.Component {
             ]
         })
     }
+
     onMarkerDragEnd = (coord, index) => {
         const { latLng } = coord;
         const lat = latLng.lat();
@@ -52,7 +53,7 @@ export default class MapPage extends React.Component {
             markers[index] = { ...markers[index], position: { lat, lng } };
             return { markers };
         });
-    };
+    }
 
     generateData = () => {
         let points = [];
@@ -73,8 +74,6 @@ export default class MapPage extends React.Component {
         }
         return points;
     }
-
-    
 
     render() {
         return (
@@ -98,7 +97,7 @@ export default class MapPage extends React.Component {
                         <Marker
                             draggable 
                             position={this.position}
-                            onDrag={(e) => this.setState({ x: e.nativeEvent.coordinate })}
+                            onDrag={(event) => this.setState({ x: event.nativeEvent.coordinate })}
                         {...marker}/>
                     ))}
                     <Heatmap 
@@ -106,8 +105,7 @@ export default class MapPage extends React.Component {
                         opacity={7}
                         radius={50}
                         maxIntensity={100}
-                        heatmapMode={"POINTS_DENSITY"}
-                    >
+                        heatmapMode={"POINTS_DENSITY"} >
                     </Heatmap>
                 </MapView>
                 <View style={styles.userProfileButtonContainer}>
@@ -153,5 +151,4 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: "rgba(130,4,150, 0.9)",
     },
-
 });

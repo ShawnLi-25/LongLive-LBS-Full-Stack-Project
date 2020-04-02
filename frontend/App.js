@@ -3,6 +3,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { Button } from 'react-native-elements';
 import LoginForm from './Components/LoginForm';
 import MapPage from './Components/Map';
+import UserSetting from './Components/UserSetting';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createDrawerNavigator,
@@ -24,17 +25,22 @@ function MapScreen({ navigation }) {
 }
 
 function SettingScreen({navigation}) {
-  return (<View style={styles.userProfileButtonContainer}>
-    <Button style={styles.goBackButtonStyle} onPress={() => { navigation.goBack() }}></Button>
-  </View>);
+  return (
+    <View>
+      <UserSetting>
+        
+      </UserSetting>
+      <Button style={styles.goBackButtonStyle} onPress={() => { navigation.goBack() }}></Button>
+    </View>
+  );
 }
 
 function HelpScreen({ navigation }) {
   return (<View style={styles.userProfileButtonContainer}>
     <Button style={styles.goBackButtonStyle} onPress={() => {navigation.goBack()}}></Button>
-    
   </View>);
 }
+
 const Drawer = createDrawerNavigator();
 
 function UserProfileDrawer() {
@@ -66,9 +72,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   goBackButtonStyle: {
-    paddingTop: 50,
+    paddingTop: 500,
     position: 'absolute',
-    top: '40%',
     right: '20%',
   }
 });
