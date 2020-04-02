@@ -75,6 +75,8 @@ export default class MapPage extends React.Component {
         return points;
     }
 
+    
+
     render() {
         return (
             <View style={{ flex: 1 }}>

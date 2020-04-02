@@ -41,6 +41,12 @@ function HelpScreen({ navigation }) {
   </View>);
 }
 
+function HelpScreen({ navigation }) {
+  return (<View style={styles.userProfileButtonContainer}>
+    <Button style={styles.goBackButtonStyle} onPress={() => {navigation.goBack()}}></Button>
+    
+  </View>);
+}
 const Drawer = createDrawerNavigator();
 
 function UserProfileDrawer() {
