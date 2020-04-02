@@ -10,17 +10,15 @@ var query = {
         'VALUES (?, ?, ?, ?, ?, ?, ?, ?)' +
         'ON DUPLICATE KEY UPDATE Block = VALUES(Block), Beat = VALUES(Beat), District = VALUES(District), Ward = VALUES(Ward), CommunityArea = VALUES(CommunityArea)',
     getNearbyLocs:
-        'SELECT locations.Latitude, locations.Longitude, (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) as square ' +
+        'SELECT locations.Location, locations.Latitude, locations.Longitude, (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) as Distance ' +
         'FROM locations ' +
         'WHERE (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) < ? ' +
-        'ORDER BY square ' +
-        'LIMIT 10',
+        'ORDER BY Distance ' +
+        'LIMIT ?',
     getNearbyEvents:
-        'SELECT E.Time, E.Type, E.Description, (POWER(? - L.Latitude, 2) + POWER(? - L.Longitude, 2)) as square ' +
-        'FROM events E, locations L ' +
-        'WHERE E.Location = L.Location AND ' +
-        '(POWER(? - L.Latitude, 2) + POWER(? - L.Longitude, 2)) < ? ' +
-        'ORDER BY square ' +
+        'SELECT Time, Type, Description ' +
+        'FROM events ' +
+        'WHERE events.Location IN (?)' +
         'LIMIT ?',
     queryAll:
         'SELECT * FROM events',
