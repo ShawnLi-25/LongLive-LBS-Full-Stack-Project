@@ -9,12 +9,6 @@ export default class MapPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            region: {
-                latitude: 41.88825,
-                longitude: -87.6324,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-            },
             markers: [],
             index: 0,
             pointList: this.generateData(),
@@ -32,7 +26,6 @@ export default class MapPage extends React.Component {
     }
 
     createMarkerOnPress = (event) => {
-        console.log(event.nativeEvent.coordinate);
         this.setState({
             markers: [
                 ...this.state.markers,
@@ -44,15 +37,12 @@ export default class MapPage extends React.Component {
         })
     }
 
-    onMarkerDragEnd = (coord, index) => {
-        const { latLng } = coord;
-        const lat = latLng.lat();
-        const lng = latLng.lng();
-        this.setState(prevState => {
-            const markers = [...this.state.markers];
-            markers[index] = { ...markers[index], position: { lat, lng } };
-            return { markers };
-        });
+    showDescriptionOnMarker = (event, index) => {
+        let description = "selected marker";
+        console.log("in showDescriptionOnMarker");
+        this.setState({
+            markers: update(this.state.markers, { index: { description: { $set: 'updated field name' } } })
+        })
     }
 
     generateData = () => {
@@ -91,13 +81,14 @@ export default class MapPage extends React.Component {
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421,
                     }} 
-                    region={this.state.region}
                     onRegionChange={this.onRegionChange}
                     onPress={(event) => { this.createMarkerOnPress(event) }}
                 >
                     {this.state.markers.map((marker, index) => (
                         <Marker
                             draggable 
+                            stopPropagation
+                            onCalloutPress={this.showDescriptionOnMarker}
                             position={this.position}
                             onDrag={(event) => this.setState({ x: event.nativeEvent.coordinate })}
                         {...marker}/>
