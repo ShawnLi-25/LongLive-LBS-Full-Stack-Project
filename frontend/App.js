@@ -4,6 +4,7 @@ import { Button } from 'react-native-elements';
 import LoginForm from './Components/LoginForm';
 import MapPage from './Components/Map';
 import UserSetting from './Components/UserSetting';
+import ReportForm from './Components/ReportForm';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createDrawerNavigator,
@@ -28,7 +29,6 @@ function SettingScreen({navigation}) {
   return (
     <View>
       <UserSetting>
-        
       </UserSetting>
       <Button style={styles.goBackButtonStyle} onPress={() => { navigation.goBack() }}></Button>
     </View>
@@ -41,6 +41,10 @@ function HelpScreen({ navigation }) {
   </View>);
 }
 
+function ReportScreen({ navigation }) {
+  return <ReportForm navigation={navigation}/>
+}
+
 const Drawer = createDrawerNavigator();
 
 function UserProfileDrawer() {
@@ -50,6 +54,7 @@ function UserProfileDrawer() {
       <Drawer.Screen name="Map" component={MapScreen} />
       <Drawer.Screen name="Setting" component={SettingScreen} />
       <Drawer.Screen name="Help" component={HelpScreen} />
+      <Drawer.Screen name="Report" component={ReportScreen}/>
     </Drawer.Navigator>
   );
 }
@@ -57,7 +62,6 @@ function UserProfileDrawer() {
 export default function App() {
   return (
     <NavigationContainer>
-      {/* <DrawerItem></DrawerItem> */}
       <UserProfileDrawer />
     </NavigationContainer>
   );

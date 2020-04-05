@@ -1,7 +1,7 @@
 import React from 'react';
 import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
 import { Button } from 'react-native-elements';
-import { StyleSheet, Text, View, Dimensions, TouchableHighlight } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } from 'react-native';
 import data from "../Data/test.json";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -13,19 +13,18 @@ export default class MapPage extends React.Component {
             index: 0,
             pointList: this.generateData(),
             navigation: this.props.navigation,
+            currentMarkerPressed: false,
         }
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
+        this.showDescriptionOnMarker = this.showDescriptionOnMarker.bind(this);
     }
 
     onRegionChange = (region) => {
         this.setState({ region })
     }
 
-    componentWillMount = () => {
-        this.setState({ navigation: this.props.navigation })
-    }
-
     createMarkerOnPress = (event) => {
+        console.log("createMarkerOnPress");
         this.setState({
             markers: [
                 ...this.state.markers,
@@ -38,11 +37,13 @@ export default class MapPage extends React.Component {
     }
 
     showDescriptionOnMarker = (event, index) => {
-        let description = "selected marker";
-        console.log("in showDescriptionOnMarker");
-        this.setState({
-            markers: update(this.state.markers, { index: { description: { $set: 'updated field name' } } })
-        })
+        // let description = "selected marker";
+        console.log(this.state.markers[index]);
+        const { marker } = this.state.markers[index];
+        this.setState({ currentMarkerPressed: !this.state.currentMarkerPressed });
+        let latitude = event.nativeEvent.coordinate.latitude;
+        let longitude = event.nativeEvent.coordinate.longitude;
+        // request with latitude, latitude
     }
 
     generateData = () => {
@@ -68,11 +69,13 @@ export default class MapPage extends React.Component {
     
 
     render() {
+        const { navigation } = this.props.navigation;
         return (
             <View style={{ flex: 1 }}>
                 <MapView
                     provider={PROVIDER_GOOGLE}
                     showsUserLocation
+                    followsUserLocation={true}
                     showsMyLocationButton
                     style={{ flex: 1 }}
                     initialRegion={{
@@ -88,10 +91,23 @@ export default class MapPage extends React.Component {
                         <Marker
                             draggable 
                             stopPropagation
-                            onCalloutPress={this.showDescriptionOnMarker}
+                            calloutVisible
+                            key={index}
+                            onSelect={(event) => { this.showDescriptionOnMarker(event, index)}}
                             position={this.position}
-                            onDrag={(event) => this.setState({ x: event.nativeEvent.coordinate })}
-                        {...marker}/>
+                            // onDrag={(event) => this.setState({ x: event.nativeEvent.coordinate })}
+                            {...marker}
+                        >
+                            <MapView.Callout tooltip={true}>
+                                <Button 
+                                    large
+                                    raised
+                                    title="Search Criminal Records"
+                                    // onPress={this.props.navigation.navigate("Report")}
+                                >
+                                </Button>
+                            </MapView.Callout>
+                        </Marker>
                     ))}
                     <Heatmap 
                         points={this.state.pointList}
