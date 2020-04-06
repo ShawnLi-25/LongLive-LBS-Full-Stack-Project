@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Button } from 'react-native-elements';
-import LoginForm from './Components/LoginForm';
-import MapPage from './Components/Map';
-import UserSetting from './Components/UserSetting';
-import ReportForm from './Components/ReportForm';
+import LoginForm from './components/LoginForm';
+import MapPage from './components/Map';
+import UserSetting from './components/UserSetting';
+import ReportForm from './components/ReportForm';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createDrawerNavigator,

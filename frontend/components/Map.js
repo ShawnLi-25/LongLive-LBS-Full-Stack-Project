@@ -41,7 +41,7 @@ export default class MapPage extends React.Component {
         this.setState({ currentMarkerPressed: !this.state.currentMarkerPressed });
         let latitude = event.nativeEvent.coordinate.latitude;
         let longitude = event.nativeEvent.coordinate.longitude;
-        let requestString = SERVER.DATA  + `?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`;
+        let requestString = SERVER.ROOT  + `?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`;
         console.log(requestString);
         // try {
         //     fetch(requestString, {
