@@ -17,7 +17,7 @@ module.exports = {
     // Deal with POST & GET Request
 
     // User report crime record (Foreign key constriant of events, times & locations)
-    // body-content: {"time": "xxx", "latitude": "xxx", "longitude": "xxx", "type": "xxx", "source": "xxx"}
+    // body-content: {"time": "xxx", "latitude": "xxx", "longitude": "xxx", "type": "xxx", "email": "xxx"}
     // endpoint: /report
     report: function (req, res, next) {
         pool.getConnection(function (err, connection) {
@@ -35,8 +35,8 @@ module.exports = {
             }
 
             var bodyContent = req.body;
-            // Todo: Settle down required fields: time(client side), latitude, longitude, type & source
-            if (bodyContent == null || bodyContent.time == null || bodyContent.latitude == null || bodyContent.longitude == null || bodyContent.type == null || bodyContent.source == null) {
+            // Todo: Settle down required fields: time(client side), latitude, longitude, type
+            if (bodyContent == null || bodyContent.time == null || bodyContent.latitude == null || bodyContent.longitude == null || bodyContent.type == null) {
                 result = {
                     code: 400,
                     msg: 'Missing Required Parameters'
@@ -47,7 +47,7 @@ module.exports = {
 
             // Foreigh key constriant with times & locations table
             let timeParams = helper.getTimeFields();
-            let locKey = helper.getLocKey(param.latitude, param.longitude);
+            let locKey = helper.getLocKey(bodyContent.latitude, bodyContent.longitude);
 
             const insertTime = () => {
                 return new Promise((resolve, reject) => {
@@ -67,7 +67,8 @@ module.exports = {
             const insertLoc = () => {
                 return new Promise((resolve, reject) => {
                     connection.query(query.insertLoc,
-                        [locKey, param.latitude, param.longitude, param.block, param.beat, param.district, param.ward, param.communityArea], function(err, locRes) {
+                        [locKey, bodyContent.latitude, bodyContent.longitude, bodyContent.block,
+                            bodyContent.beat, bodyContent.district, bodyContent.ward, bodyContent.communityArea], function(err, locRes) {
 
                         if(err) {
                             reject(err);
@@ -83,8 +84,8 @@ module.exports = {
 
             const insertEvent = () => {
                 return new Promise((resolve, reject) => {
-                    connection.query(query.insertEvent,
-                        [timeParams[0], locKey, param.type, param.arrest, param.source, param.description], function (err, eventRes) {
+                    connection.query(query.insertUserRecord,
+                        [timeParams[0], locKey, bodyContent.type, bodyContent.description, bodyContent.email], function (err, eventRes) {
 
                         if(err) {
                             reject(err);
@@ -99,7 +100,7 @@ module.exports = {
                             resolve(eventRes);
                         }
                         /* send back to client */
-                        res.send(JSON.stringify(objs));
+                        res.send(result);
                         connection.release();
                     })
                 })
@@ -214,7 +215,7 @@ module.exports = {
             if (err) {
                 return console.error('Connection Error:' + err.message);
             }
-            connection.query(query.createEvent, function (err, result) {
+            connection.query(query.createUserRecord, function (err, result) {
                 if(err) {
                     return console.error('SQL Execution Error:' + err.message);
                 }

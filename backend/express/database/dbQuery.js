@@ -1,4 +1,7 @@
 var query = {
+    insertUserRecord:
+        'INSERT INTO userRecords(Time, Location, Type, Description, email) ' +
+        'VALUES (?, ?, ?, ?, ?)',
     insertEvent:
         'INSERT INTO events(Time, Location, Type, Arrest, Source, Description) ' +
         'VALUES (?, ?, ?, ?, ?, ?)',
@@ -34,6 +37,17 @@ var query = {
             password varchar(50) not null,
             mobile int(11)
         ) AUTO_INCREMENT = 2;`,
+    createUserRecord:
+            `create table if not exists userRecords (
+                ReportID int unsigned AUTO_INCREMENT PRIMARY KEY,
+                email varchar(50) not null,
+                Time varchar(255) not null,
+                Location varchar(255) not null,
+                Type varchar(255) not null,
+                Description varchar(255),
+                FOREIGN KEY (Time) REFERENCES times(Time) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (Location) REFERENCES locations(Location) ON DELETE CASCADE ON UPDATE CASCADE
+            )`,
     createEvent:
         `create table if not exists events (
             EventID int unsigned AUTO_INCREMENT PRIMARY KEY,
@@ -42,7 +56,7 @@ var query = {
             Type varchar(255) not null,
             Description varchar(255),
             Arrest enum('TRUE', 'FALSE'),
-            Source enum('Official', 'Report') not null,
+            Source enum('Official', 'Report'),
             FOREIGN KEY (Time) REFERENCES times(Time) ON DELETE CASCADE ON UPDATE CASCADE,
             FOREIGN KEY (Location) REFERENCES locations(Location) ON DELETE CASCADE ON UPDATE CASCADE
             )`,
