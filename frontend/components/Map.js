@@ -1,6 +1,6 @@
 import React from 'react';
 import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
-import { Button } from 'react-native-elements';
+import { Button, Image } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } from 'react-native';
 import data from '../Data/test.json';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -43,16 +43,16 @@ export default class MapPage extends React.Component {
         let longitude = event.nativeEvent.coordinate.longitude;
         let requestString = SERVER.DATA  + `?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`;
         console.log(requestString);
-        try {
-            fetch(requestString, {
-                method: "GET",
-                // headers: headers,
-            }).then(response => {
-                console.log(response.status);
-            })
-        } catch(err) {
-            console.log(err);
-        }
+        // try {
+        //     fetch(requestString, {
+        //         method: "GET",
+        //         // headers: headers,
+        //     }).then(response => {
+        //         console.log(response.status);
+        //     })
+        // } catch(err) {
+        //     console.log(err);
+        // }
        
         
         // .then(response => {
@@ -114,9 +114,11 @@ export default class MapPage extends React.Component {
     
 
     render() {
+        const buttons = ['Hello', 'World', 'Buttons']
         const { navigation } = this.props.navigation;
         return (
             <View style={{ flex: 1 }}>
+                
                 <MapView
                     provider={PROVIDER_GOOGLE}
                     showsUserLocation
@@ -170,6 +172,19 @@ export default class MapPage extends React.Component {
                         icon={<Icon name='face-profile' size={60} />}
                     />
                 </View>
+{/* const crimeTypes = [{ value: 'HOMICIDE' }, { value: 'THEFT' }, { value: 'BATTERY' }, { value: 'CRIMINAL DAMAGE' }, { value: 'NARCOTICS' }, { value: 'ASSULT' }, { value: 'ARSON' }, { value: 'BURGLARY' }] */}
+
+                {/* <View style={styles.buttonGroup}>
+                    <Button
+                        type='clear'
+                        icon={<Image source={'./Image/theft-icon-24.jpg' }></Image>}
+                    />
+                    <Button
+                        type='clear'
+                        icon={<Icon name='knife' size={30} />}
+                    />
+                    
+                </View> */}
             </View>
         );
     }
@@ -192,7 +207,13 @@ const styles = StyleSheet.create({
     },
     userProfileButtonContainer: {
         position: 'absolute', //use absolute position to show button on top of the map
-        top: '0%',
+        top: '79%',
+        right: '0%',
+        flex: 1,
+    },
+    buttonGroup: {
+        position: 'absolute', //use absolute position to show button on top of the map
+        top: '5%',
         right: '0%',
         flex: 1,
     },
