@@ -111,7 +111,9 @@ export default class MapPage extends React.Component {
         return points;
     }
 
-    
+    searchCrimeType = crimeType => {
+        console.log(crimeType);
+    }
 
     render() {
         const buttons = ['Hello', 'World', 'Buttons']
@@ -172,19 +174,74 @@ export default class MapPage extends React.Component {
                         icon={<Icon name='face-profile' size={60} />}
                     />
                 </View>
-{/* const crimeTypes = [{ value: 'HOMICIDE' }, { value: 'THEFT' }, { value: 'BATTERY' }, { value: 'CRIMINAL DAMAGE' }, { value: 'NARCOTICS' }, { value: 'ASSULT' }, { value: 'ARSON' }, { value: 'BURGLARY' }] */}
-
-                {/* <View style={styles.buttonGroup}>
-                    <Button
-                        type='clear'
-                        icon={<Image source={'./Image/theft-icon-24.jpg' }></Image>}
-                    />
-                    <Button
-                        type='clear'
-                        icon={<Icon name='knife' size={30} />}
-                    />
-                    
-                </View> */}
+                <View style={styles.buttonContainer}>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center'}}>
+                        <Button
+                            buttonStyle={{backgroundColor: 'white'}}
+                            type='clear'
+                            icon={<Icon name='knife' size={30} />}
+                            onPress={() => this.searchCrimeType('HOMICIDE')}
+                        />
+                        <Text style={{ fontSize: 8}}>HOMICIDE</Text>
+                    </View>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
+                        <Button
+                            type='clear'
+                            icon={<Icon name='account-remove' size={30} />}
+                            onPress={() => this.searchCrimeType('THEFT')}
+                        />
+                        <Text style={{ fontSize: 8 }}>THEFT</Text>
+                    </View>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
+                        <Button
+                            type='clear'
+                            icon={<Icon name='kabaddi' size={30} />}
+                            onPress={() => this.searchCrimeType('BATTERY')}
+                        />
+                        <Text style={{ fontSize: 8 }}>BATTERY</Text>
+                    </View>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
+                        <Button
+                            type='clear'
+                            icon={<Icon name='home-alert' size={30} />}
+                            onPress={() => this.searchCrimeType('DAMAGE')}
+                        />
+                        <Text style={{ fontSize: 8 }}>DAMAGE</Text>
+                    </View>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
+                        <Button
+                            type='clear'
+                            icon={<Icon name='tea' size={30} />}
+                            onPress={() => this.searchCrimeType('NARCOTICS')}
+                        />
+                        <Text style={{ fontSize: 8 }}>NARCOTICS</Text>
+                    </View>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
+                        <Button
+                            type='clear'
+                            icon={<Icon name='drupal' size={30} />}
+                            onPress={() => this.searchCrimeType('ASSULT')}
+                        />
+                        <Text style={{ fontSize: 8 }}>ASSULT</Text>
+                    </View>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
+                        <Button
+                            type='clear'
+                            icon={<Icon name='fire' size={30} />}
+                            onPress={() => this.searchCrimeType('ARSON')}
+                        />
+                        <Text style={{ fontSize: 8 }}>ARSON</Text>
+                    </View>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
+                        <Button
+                            type='clear'
+                            icon={<Icon name='garage-alert' size={30} />}
+                            onPress={() => this.searchCrimeType('BURGLARY')}
+                        />
+                        <Text style={{ fontSize: 8 }}>BURGLARY</Text>
+                    </View>
+                </View>
+               
             </View>
         );
     }
@@ -192,7 +249,8 @@ export default class MapPage extends React.Component {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 0,
+        flex: 1,
+        flexDirection: 'column',
         backgroundColor: 'black',
         alignItems: 'center',
         justifyContent: 'center',
@@ -202,29 +260,18 @@ const styles = StyleSheet.create({
         width: Dimensions.get('window').width,
         height: Dimensions.get('window').height
     },
-    alert_button: {
-        color: 'red'
-    },
     userProfileButtonContainer: {
         position: 'absolute', //use absolute position to show button on top of the map
         top: '79%',
         right: '0%',
         flex: 1,
     },
-    buttonGroup: {
-        position: 'absolute', //use absolute position to show button on top of the map
+    buttonContainer: {
+        flexDirection: 'column',
+        position: 'absolute',
+        flex: 1,
         top: '5%',
         right: '0%',
-        flex: 1,
-    },
-    markerWrap: {
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    marker: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: "rgba(130,4,150, 0.9)",
+        alignItems: 'center'
     },
 });
