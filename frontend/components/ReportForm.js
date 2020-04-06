@@ -3,7 +3,7 @@ import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStora
 import { Dropdown } from 'react-native-material-dropdown'
 import { Header, Icon } from 'react-native-elements'
 const crimeTypes = [{ value: 'HOMICIDE' }, { value: 'THEFT' }, { value: 'BATTERY' }, { value: 'CRIMINAL DAMAGE' }, { value: 'NARCOTICS' }, { value: 'ASSULT' }, { value: 'ARSON' }, { value: 'BURGLARY' }]
-const serverURL = 'http://ec2-3-17-39-236.us-east-2.compute.amazonaws.com';
+import SERVER from '../config';
 export default class ReportForm extends Component {
     constructor(props) {
         super(props);
@@ -21,7 +21,7 @@ export default class ReportForm extends Component {
         this.setState({ primaryType: selectedType})
     }
     submit = () => {
-        fetch(serverURL, {
+        fetch(SERVER.REPORT, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -29,10 +29,11 @@ export default class ReportForm extends Component {
             },
             body: JSON.stringify({
                 time: '00:00:00',
-                latitude: '12345',
-                longitude: '12345',
+                latitude: 12345,
+                longitude: 12345,
+                email: 'abc@text.com',
                 type: this.state.primaryType,
-                source: 'user reported',
+                // source: 'user reported',
                 // crimeDescription: this.state.crimeDescription,
                 // reportedLocation: this.state.reportedLocation,
                 // locationDescription: this.state.locationDescription,
@@ -44,11 +45,12 @@ export default class ReportForm extends Component {
                 this.props.navigation.goBack();
                 // this.props.navigation.navigate("MapPage");
             } else {
-                alert("failed");
+                alert(response.status);
             }
         }) 
         // this.props.navigation.goBack();
     }
+
     render() {
 
         return(
@@ -94,7 +96,7 @@ export default class ReportForm extends Component {
                         title="Submit"
                         color='white'
                         style={styles.buttonText}
-                        onPress={() => {this.submit()}}
+                        onPress={this.submit}
                     />
                 </TouchableOpacity>
             </View>
