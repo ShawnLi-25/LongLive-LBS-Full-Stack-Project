@@ -22,8 +22,33 @@ var query = {
         'SELECT Time, Type, Description ' +
         'FROM events ' +
         'WHERE events.Location IN (?)' +
+        'UNION ' +
+        'SELECT Time, Type, Description ' +
+        'FROM userRecords ' +
+        'WHERE userRecords.Location IN (?)' +
         'LIMIT ?',
-    queryAll:
+    getEventNumByType:
+        'SELECT Type, COUNT(*) AS Num ' +
+        'FROM (' +
+        'SELECT Type ' +
+        'FROM events ' +
+        'WHERE events.Location IN (?)' +
+        'UNION ALL ' +
+        'SELECT Type ' +
+        'FROM userRecords ' +
+        'WHERE userRecords.Location IN (?)' +
+        ') t ' +
+        'GROUP BY Type',
+    joinQuery:
+        'SELECT E.Time, E.Type, E.Description ' +
+        'FROM events E NATURAL JOIN locations L ' +
+        'WHERE L.Location IN (' +
+        'SELECT L2.Location ' +
+        'FROM locations L2 ' +
+        'WHERE (POWER(? - L2.Latitude, 2) + POWER(? - L2.Longitude, 2)) < ? ' +
+        'ORDER BY (POWER(? - L2.Latitude, 2) + POWER(? - L2.Longitude, 2)))' +
+        'LIMIT ?',
+        queryAll:
         'SELECT * FROM events',
     login:
         'SELECT * FROM users WHERE email = ?',

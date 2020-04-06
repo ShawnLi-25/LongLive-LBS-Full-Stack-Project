@@ -34,7 +34,7 @@ module.exports = {
                 return res.status(400).json(result);
             }
 
-            var bodyContent = req.body;
+            const bodyContent = req.body;
             // Todo: Settle down required fields: time(client side), latitude, longitude, type
             if (bodyContent == null || bodyContent.time == null || bodyContent.latitude == null || bodyContent.longitude == null || bodyContent.type == null) {
                 result = {
@@ -95,7 +95,8 @@ module.exports = {
                             console.log("Report Done!");
                             result = {
                                 code: 200,
-                                msg:'Report Succeed!'
+                                msg:'Report Succeed!',
+                                reportID: eventRes.insertId
                             };
                             resolve(eventRes);
                         }
@@ -133,7 +134,7 @@ module.exports = {
                 return res.status(400).json(result);
             }
 
-            var param = req.query;
+            const param = req.query;
             connection.query(query.getNearbyLocs, [param.latitude, param.longitude, param.latitude, param.longitude, conf.RADIUS, conf.HEATMAPLIMIT], function (err, rows) {
                 if(err) {
                     return console.error('SQL Execution Error:' + err.message);
@@ -149,6 +150,49 @@ module.exports = {
                     result = {
                         code: 200,
                         msg: 'Get Nearyby Locations Succeed!'
+                    };
+                }
+
+                /* send back to client */
+                res.send(JSON.stringify(objs));
+                connection.release();
+            });
+        });
+    },
+
+    // Get nearby events from official data based on square-distance for user input (Using join query!!)
+    // endpoint: /getNearbyEvents/src?latitude=xxx&longitude=xxx
+    getNearbySrcEvents: function (req, res, next) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return console.error('Connection Error:' + err.message);
+            }
+
+            let result;
+            if(req.method == "POST") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send GET!'
+                };
+                return res.status(400).json(result);
+            }
+
+            const param = req.query;
+            connection.query(query.joinQuery, [param.latitude, param.longitude, conf.RADIUS, param.latitude, param.longitude, conf.HEATMAPLIMIT], function (err, rows) {
+                if(err) {
+                    return console.error('SQL Execution Error:' + err.message);
+                }
+
+                var objs = [];
+
+                if (rows) {
+                    console.log(rows);
+                    for (let i = 0; i < rows.length; i++) {
+                        objs.push(rows[i]);
+                    }
+                    result = {
+                        code: 200,
+                        msg: 'Join Query Succeed!'
                     };
                 }
 
@@ -176,7 +220,7 @@ module.exports = {
                 return res.status(400).json(result);
             }
 
-            var param = req.query;
+            const param = req.query;
             connection.query(query.getNearbyLocs, [param.latitude, param.longitude, param.latitude, param.longitude, conf.RADIUS, conf.HEATMAPLIMIT], function (err, rows) {
                 if(err) {
                     return console.error('SQL Execution Error:' + err.message);
@@ -184,7 +228,7 @@ module.exports = {
 
                 let locList = rows.map(i => i.Location);
 
-                connection.query(query.getNearbyEvents, [locList, conf.EVENTNUM], function (err, rows) {
+                connection.query(query.getNearbyEvents, [locList, locList, conf.EVENTNUM], function (err, rows) {
                     if(err) {
                         return console.error('SQL Execution Error:' + err.message);
                     }
@@ -196,12 +240,7 @@ module.exports = {
                         for(let i = 0; i < rows.length; i++) {
                             objs.push(rows[i]);
                         }
-                        result = {
-                            code: 200,
-                            msg:'Get Nearby Events Succeed!'
-                        };
                     }
-
                     res.send(JSON.stringify(objs));
                     connection.release();
                 });
@@ -210,6 +249,75 @@ module.exports = {
         });
     },
 
+    // Get nearby events by type based on square-distance for user input
+    // endpoint: /getNearbyEvents/type?latitude=xxx&longitude=xxx
+    getEventNumByType: function (req, res, next) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return console.error('Connection Error:' + err.message);
+            }
+
+            let result;
+            if(req.method == "POST") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send GET!'
+                };
+                return res.status(400).json(result);
+            }
+
+            const param = req.query;
+            connection.query(query.getNearbyLocs, [param.latitude, param.longitude, param.latitude, param.longitude, conf.RADIUS, conf.HEATMAPLIMIT], function (err, rows) {
+                if(err) {
+                    return console.error('SQL Execution Error:' + err.message);
+                }
+
+                let locList = rows.map(i => i.Location);
+
+                connection.query(query.getEventNumByType, [locList, locList], function (err, rows) {
+                    if (err) {
+                        return console.error('SQL Execution Error:' + err.message);
+                    }
+
+                    var objs = [];
+
+                    if (rows) {
+                        console.log(rows);
+                        for (let i = 0; i < rows.length; i++) {
+                            objs.push(rows[i]);
+                        }
+                    }
+                    res.send(JSON.stringify(objs));
+                    connection.release();
+                });
+            });
+        });
+
+    },
+
+    //Todo: Get records based on time field
+    getRecentEvents: function (req, res, next) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return console.error('Connection Error:' + err.message);
+            }
+
+            let result;
+            if(req.method == "POST") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send GET!'
+                };
+                return res.status(400).json(result);
+            }
+
+            const param = req.query;
+
+        });
+    },
+
+    // Create new table
+    // endpoint: /createDB
     create: function (req, res, next) {
         pool.getConnection(function (err, connection) {
             if (err) {

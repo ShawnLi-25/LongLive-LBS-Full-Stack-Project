@@ -21,14 +21,24 @@ router.post('/report', function(req, res, next) {
   accessDB.report(req, res, next);
 });
 
-/* Get Nearby data for Heatmap */
+/* Get Nearby locations for Heatmap */
 router.get('/getNearbyLocs', function(req, res, next) {
   accessDB.getNearbyLocs(req, res, next);
 });
 
-/* Query Database */
+/* Get Nearby Eevnts */
 router.get('/getNearbyEvents', function(req, res, next) {
   accessDB.getNearbyEvents(req, res, next);
+});
+
+/* Get Nearby Eevnts from official data */
+router.get('/getNearbyEvents/src', function(req, res, next) {
+  accessDB.getNearbySrcEvents(req, res, next);
+});
+
+/* Get # of Events group by Type */
+router.get('/getNearbyEvents/type', function(req, res, next) {
+  accessDB.getEventNumByType(req, res, next);
 });
 
 /* Create Database */
