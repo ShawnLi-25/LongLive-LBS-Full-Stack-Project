@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard, Picker, ActionSheet} from 'react-native';
 import { Dropdown } from 'react-native-material-dropdown'
-import { Header } from 'react-native-elements'
+import { Header, Icon } from 'react-native-elements'
 const crimeTypes = [{ value: 'HOMICIDE' }, { value: 'THEFT' }, { value: 'BATTERY' }, { value: 'CRIMINAL DAMAGE' }, { value: 'NARCOTICS' }, { value: 'ASSULT' }, { value: 'ARSON' }, { value: 'BURGLARY' }]
-
+const serverURL = 'http://ec2-3-17-39-236.us-east-2.compute.amazonaws.com';
 export default class ReportForm extends Component {
     constructor(props) {
         super(props);
@@ -21,30 +21,40 @@ export default class ReportForm extends Component {
         this.setState({ primaryType: selectedType})
     }
     submit = () => {
-        // fetch(serverURL, {
-        //     method: 'POST',
-        //     headers: {
-        //         Accept: 'application/json',
-        //         'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify({
-        //         crimeDescription: this.state.crimeDescription,
-        //         reportedLocation: this.state.reportedLocation,
-        //         locationDescription: this.state.locationDescription,
-        //         block: this.state.block,
-        //     }),
-        // }).then(response => {
-        //     if (response.status == 200) {
-        //         this.props.navigation.navigate("MapPage");
-        //     }
-        // }) 
-        this.props.navigation.goBack();
+        fetch(serverURL, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                time: '00:00:00',
+                latitude: '12345',
+                longitude: '12345',
+                type: this.state.primaryType,
+                source: 'user reported',
+                // crimeDescription: this.state.crimeDescription,
+                // reportedLocation: this.state.reportedLocation,
+                // locationDescription: this.state.locationDescription,
+                // block: this.state.block,
+            }),
+        }).then(response => {
+            if (response.status == 200) {
+                alert("success");
+                this.props.navigation.goBack();
+                // this.props.navigation.navigate("MapPage");
+            } else {
+                alert("failed");
+            }
+        }) 
+        // this.props.navigation.goBack();
     }
     render() {
 
         return(
             <View style={styles.container}>
                 <Header placement='left'>
+                    <Icon name='close' onPress={() => { this.props.navigation.goBack(); }}></Icon>
                     <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#002f6c' }}>Report a Crime</Text>
                 </Header>
                 <Dropdown 
@@ -69,28 +79,16 @@ export default class ReportForm extends Component {
                     onChangeText={(reportedLocation) => this.setState({ reportedLocation })}
                     underlineColorAndroid='rgba(0,0,0,0)'
                     placeholder="Reported Location"
-                    secureTextEntry={true}
                     placeholderTextColor="#002f6c"
                     ref={(input) => this.password = input}
                 />
-                {/* <TextInput style={styles.inputBox}
-                    onChangeText={(locationDescription) => this.setState({ locationDescription })}
-                    underlineColorAndroid='rgba(0,0,0,0)'
-                    placeholder="Location Description"
-                    secureTextEntry={true}
-                    placeholderTextColor="#002f6c"
-                    ref={(input) => this.password = input}
-                /> */}
-
                 <TextInput style={styles.inputBox}
                     onChangeText={(block) => this.setState({ block })}
                     underlineColorAndroid='rgba(0,0,0,0)'
                     placeholder="Block"
-                    secureTextEntry={true}
                     placeholderTextColor="#002f6c"
                     ref={(input) => this.password = input}
-                />
-                
+                />  
                 <TouchableOpacity style={styles.button}>
                     <Button
                         title="Submit"

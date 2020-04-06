@@ -2,9 +2,9 @@ import React from 'react';
 import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
 import { Button } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } from 'react-native';
-import data from "../Data/test.json";
+import data from '../Data/test.json';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import SERVER from '../config';
 export default class MapPage extends React.Component {
     constructor(props) {
         super(props);
@@ -16,7 +16,7 @@ export default class MapPage extends React.Component {
             currentMarkerPressed: false,
         }
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
-        this.showDescriptionOnMarker = this.showDescriptionOnMarker.bind(this);
+        // this.showDescriptionOnMarker = this.showDescriptionOnMarker.bind(this);
     }
 
     onRegionChange = (region) => {
@@ -37,14 +37,59 @@ export default class MapPage extends React.Component {
     }
 
     showDescriptionOnMarker = (event, index) => {
-        // let description = "selected marker";
-        console.log(this.state.markers[index]);
         const { marker } = this.state.markers[index];
         this.setState({ currentMarkerPressed: !this.state.currentMarkerPressed });
         let latitude = event.nativeEvent.coordinate.latitude;
         let longitude = event.nativeEvent.coordinate.longitude;
+        let requestString = SERVER.DATA  + `?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`;
+        console.log(requestString);
+        try {
+            fetch(requestString, {
+                method: "GET",
+                // headers: headers,
+            }).then(response => {
+                console.log(response.status);
+            })
+        } catch(err) {
+            console.log(err);
+        }
+       
+        
+        // .then(response => {
+        //     if (response.status == 200) {
+        //         alert("success");
+        //         // this.props.navigation.goBack();
+        //         // this.props.navigation.navigate("MapPage");
+        //     } else {
+        //         console.log(response.status);
+        //     }
+        // })
         // request with latitude, latitude
+        // fetch(serverURL, {
+        //     method: 'POST',
+        //     headers: {
+        //         Accept: 'application/json',
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //         latitude: latitude,
+        //         longitude: longitude,
+        //         // crimeDescription: this.state.crimeDescription,
+        //         // reportedLocation: this.state.reportedLocation,
+        //         // locationDescription: this.state.locationDescription,
+        //         // block: this.state.block,
+        //     }),
+        // }).then(response => {
+        //     if (response.status == 200) {
+        //         alert("success");
+        //         this.props.navigation.goBack();
+        //         // this.props.navigation.navigate("MapPage");
+        //     } else {
+        //         alert("failed");
+        //     }
+        // }) 
     }
+
 
     generateData = () => {
         let points = [];
@@ -84,6 +129,7 @@ export default class MapPage extends React.Component {
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421,
                     }} 
+                    // region={this.state.currentRegion}
                     onRegionChange={this.onRegionChange}
                     onPress={(event) => { this.createMarkerOnPress(event) }}
                 >
@@ -93,7 +139,7 @@ export default class MapPage extends React.Component {
                             stopPropagation
                             calloutVisible
                             key={index}
-                            onSelect={(event) => { this.showDescriptionOnMarker(event, index)}}
+                            onPress={(event) => { this.showDescriptionOnMarker(event, index)}}
                             position={this.position}
                             // onDrag={(event) => this.setState({ x: event.nativeEvent.coordinate })}
                             {...marker}
@@ -103,7 +149,7 @@ export default class MapPage extends React.Component {
                                     large
                                     raised
                                     title="Search Criminal Records"
-                                    // onPress={this.props.navigation.navigate("Report")}
+                                    // onPress={(event) => { this.showDescriptionOnMarker(event, index) }}
                                 >
                                 </Button>
                             </MapView.Callout>
@@ -121,7 +167,7 @@ export default class MapPage extends React.Component {
                     <Button
                         onPress={() => { this.props.navigation.openDrawer() }}
                         type='clear'
-                        icon={<Icon name='face-profile' size='60' />}
+                        icon={<Icon name='face-profile' size={60} />}
                     />
                 </View>
             </View>
