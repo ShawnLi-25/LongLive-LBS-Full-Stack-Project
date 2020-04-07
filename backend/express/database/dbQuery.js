@@ -13,19 +13,27 @@ var query = {
         'VALUES (?, ?, ?, ?, ?, ?, ?, ?)' +
         'ON DUPLICATE KEY UPDATE Block = VALUES(Block), Beat = VALUES(Beat), District = VALUES(District), Ward = VALUES(Ward), CommunityArea = VALUES(CommunityArea)',
     getNearbyLocs:
-        'SELECT locations.Location, locations.Latitude, locations.Longitude, (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) as Distance ' +
+        'SELECT locations.Location, locations.Latitude, locations.Longitude ' +
         'FROM locations ' +
-        'WHERE (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) < ? ' +
-        'ORDER BY Distance ' +
+        'WHERE ABS(? - locations.Latitude) < ? AND ABS(? - locations.Longitude) < ? ' +
         'LIMIT ?',
-    getNearbyEvents:
-        'SELECT Time, Type, Description ' +
-        'FROM events ' +
+    getHeatmapEvents:
+        'SELECT L.Latitude AS latitude, L.Longitude AS longitude ' +
+        'FROM locations L NATURAL JOIN events ' +
         'WHERE events.Location IN (?)' +
         'UNION ' +
-        'SELECT Time, Type, Description ' +
-        'FROM userRecords ' +
+        'SELECT L2.Latitude, L2.Longitude ' +
+        'FROM locations L2 NATURAL JOIN userRecords ' +
         'WHERE userRecords.Location IN (?)' +
+        'LIMIT ?',
+    getNearbyEventsDetails:
+        'SELECT Time, Location, Type, Description ' +
+        'FROM events ' +
+        'WHERE events.Location IN (?) AND events.Type = ? '+
+        'UNION ' +
+        'SELECT Time, Location, Type, Description ' +
+        'FROM userRecords ' +
+        'WHERE userRecords.Location IN (?) AND userRecords.Type = ? ' +
         'LIMIT ?',
     getEventNumByType:
         'SELECT Type, COUNT(*) AS Num ' +
@@ -37,6 +45,7 @@ var query = {
         'SELECT Type ' +
         'FROM userRecords ' +
         'WHERE userRecords.Location IN (?)' +
+        'LIMIT ?' +
         ') t ' +
         'GROUP BY Type',
     joinQuery:
@@ -65,7 +74,7 @@ var query = {
     createUserRecord:
             `create table if not exists userRecords (
                 ReportID int unsigned AUTO_INCREMENT PRIMARY KEY,
-                email varchar(50) not null,
+                email varchar(50),
                 Time varchar(255) not null,
                 Location varchar(255) not null,
                 Type varchar(255) not null,
@@ -102,8 +111,8 @@ var query = {
             District int unsigned,
             Ward int unsigned,
             CommunityArea int unsigned,
-            Longitude float not null,
-            Latitude float not null
+            Latitude double(14, 9) not null,
+            Longitude double(14, 9) not null
             )`,
     createMap:
         `create table if not exists map (
