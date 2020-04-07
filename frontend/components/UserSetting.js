@@ -9,7 +9,6 @@ export default class UserSetting extends React.Component {
         this.state = {
             navigation: this.props.navigation,
         }
-        
     }
     render() {
         return(
@@ -50,13 +49,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         textAlign: 'right',
-        // flexDirection: 'row'
-        // justifyContent: 'left'
     },
     textStyle: {
-        // alignItems: "left",
-        // textAlignments: 'left'
-        // textAlign:'right',
         color: '#808080'
     
     }
