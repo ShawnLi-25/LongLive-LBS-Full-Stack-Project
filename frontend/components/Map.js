@@ -36,6 +36,7 @@ export default class MapPage extends React.Component {
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
             },
+            zoom: 1,
             typeButtonPressed: false,
         } 
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
@@ -47,6 +48,9 @@ export default class MapPage extends React.Component {
 
     onRegionChange = (region) => {
         this.setState({ currentRegion: region })
+        let zoom = Math.round(Math.log(360 / region.longitudeDelta) / Math.LN2);
+        console.log("zoom: " + zoom);
+        this.setState({zoom: zoom});
         const currentRegion = this.state.currentRegion;
         let requestType = `${SERVER.ROOT}getNearbyEvents/type?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}`;
         fetch(requestType)
@@ -65,30 +69,24 @@ export default class MapPage extends React.Component {
             fetch(requestPoints)
                 .then((response) => { return response.json(); })
                 .then((locationData) => {
+                    console.log("data count: " +locationData.length);
                     let testpoint = {
                             latitude: Number(currentRegion.latitude),
                             longitude: Number(currentRegion.longitude),
                     };
-                    // let fetchPointList = [];
-                    
+                    let fetchPointList = [];
                     // console.log("locationdata " + locationData);
-                    // for (var i = 0; i < locationData.length; i++) {
-                        // console.log("point " + locationData[i].latitude + " " + locationData[i].longitude);
-                        // console.log("testpoint " + testpoint.latitude + " " + testpoint.longitude);
-                        
-                        // testpoint.latitude = Number(locationData[i]['latitude']);
-                        // testpoint.longitude = Number(locationData[i]['longitude']);
-                        // let point = {
-                        //     latitude: Number(locationData[i].latitude) + 0.8840126856128,
-                        //     longitude: Number(locationData[i].longitude) - 0.3326436281204,
-                        // };
-                        // console.log(typeof(locationData[i].longitude));
-                        // console.log("point " + point);
-                        // console.log("testpoint " + testpoint);
-                        // fetchPointList.push(point);
-                    // }
+                    for (var i = 0; i < locationData.length; i++) {
+                        let point = {
+                            latitude: (Number(locationData[i].latitude)),
+                            longitude: Number(locationData[i].longitude),
+                        };
+                        // console.log("fetched point " + point.latitude + " " + point.longitude);
+                        // console.log("current point " + testpoint.latitude + " " + testpoint.longitude);
+                        fetchPointList.push(point);
+                    }
                     // console.log(fetchPointList);
-                    // this.setState({ pointList: fetchPointList});
+                    this.setState({ pointList: fetchPointList});
                     // // this.setState({ testpoint})
                     // console.log("test" + testpoint);
                     // console.log("pointList " + this.state.pointList)
@@ -102,7 +100,6 @@ export default class MapPage extends React.Component {
                 ...this.state.markers,
                 {
                     coordinate: event.nativeEvent.coordinate,
-                    description: "",
                 }
             ]
         })
@@ -136,6 +133,13 @@ export default class MapPage extends React.Component {
             console.log(data);
         }) ;
     }
+
+    onRegionChangeComplete = (region) => {
+        let latiDelta = region.latitudeDelta;
+        let longiDelta = region.longitudeDelta;
+        this.setState({ currentRegion: { latitudeDelta: latiDelta }})
+        this.setState({ currentRegion: { longitudeDelta: longiDelta }})
+    }
     
     render() {
         let crimeTypeCount = this.state.crimeTypeCount;
@@ -155,16 +159,17 @@ export default class MapPage extends React.Component {
                         longitudeDelta: 0.0421,
                     }}
                     onRegionChange={this.onRegionChange}
+                    // onRegionChangeComplete={this.onRegionChangeComplete}
                 // onPress={(event) => { this.createMarkerOnPress(event) }}
                 >
                     {this.state.pointList.map((circle, index) => (
                         <Circle
                             key={index}
                             center={circle}
-                            radius={1000}
+                            radius={30}
                             fillColor='#FD7659'
                             strokeColor='transparent'
-                            {...circle} />
+                            {...circle}/>
                     ))}
                 </MapView>
                 <View style={styles.userProfileButtonContainer}>
