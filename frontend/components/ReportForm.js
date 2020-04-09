@@ -4,10 +4,13 @@ import { Dropdown } from 'react-native-material-dropdown'
 import { Header, Icon } from 'react-native-elements'
 const crimeTypes = [{ value: 'HOMICIDE' }, { value: 'THEFT' }, { value: 'BATTERY' }, { value: 'CRIMINAL DAMAGE' }, { value: 'NARCOTICS' }, { value: 'ASSULT' }, { value: 'ARSON' }, { value: 'BURGLARY' }]
 import SERVER from '../config';
+
 export default class ReportForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            latitude: '',
+            longitude: '',
             crimeDescription: '',
             reportedLocation: '',
             locationDescription: '',
@@ -17,9 +20,11 @@ export default class ReportForm extends Component {
             navigation: this.props.navigation,
         }
     }
+
     updateprimaryType = (selectedType) => {
         this.setState({ primaryType: selectedType})
     }
+
     submit = () => {
         fetch(SERVER.REPORT, {
             method: 'POST',
@@ -43,12 +48,10 @@ export default class ReportForm extends Component {
             if (response.status == 200) {
                 alert("success");
                 this.props.navigation.goBack();
-                // this.props.navigation.navigate("MapPage");
             } else {
                 alert(response.status);
             }
         }) 
-        // this.props.navigation.goBack();
     }
 
     render() {

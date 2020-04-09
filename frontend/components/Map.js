@@ -1,12 +1,29 @@
 import React from 'react';
-import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
-import { Button, Image } from 'react-native-elements';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import { Button } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } from 'react-native';
-import data from '../Data/test.json';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SERVER from '../config';
 import TypeIcon from './TypeIcon';
+
 let typeCount = SERVER.typeCount;
+let buttonNames = SERVER.buttonNames;
+let iconNames = SERVER.iconNames;
+let buttonPressedStatus = buttonStatusInit(buttonNames);
+let currentPressedButtons = [];
+let anyButtonPressed = false;
+
+function buttonStatusInit (names) {
+    let buttonPressedStatusList = [];
+    for (var i = 0; i < names.length; i++) {
+        let button = {
+            name: names[i],
+            status: false,
+        }
+        buttonPressedStatusList.push(button);
+    }
+    return buttonPressedStatusList;
+}
 
 function Circle({ onLayout, ...props }) {
     const ref = React.useRef();
@@ -17,6 +34,37 @@ function Circle({ onLayout, ...props }) {
         }
     }
     return <MapView.Circle ref={ref} onLayout={onLayoutCircle} {...props} />;
+}
+
+function ButtonView({...props}) {
+    const ref = React.useRef();
+    const buttonName = props.name;
+    const crimeTypeCount = props.crimeTypeCount;
+    const iconName = props.iconName;
+    
+    function onPressButtonView() {
+        currentPressedButtons = [];
+        anyButtonPressed = false;
+        buttonPressedStatus.map((button, index) => {
+            if (button.name == buttonName) {
+                button.status = !button.status;
+            }
+            if (button.status) {
+                anyButtonPressed = true;
+                currentPressedButtons.push(button);
+            }
+        })
+    }
+
+    return <View ref={ref} style={{ backgroundColor: 'white', alignItems: 'center' }}>
+        <Button
+            buttonStyle={{ backgroundColor: 'white' }}
+            type='clear'
+            icon={<TypeIcon name={iconName} size={30} action={onPressButtonView} />}
+        />
+        <Text style={{ fontSize: 8 }}>{buttonName}</Text>
+        <Text style={{ fontSize: 8 }}>{crimeTypeCount[buttonName] ? crimeTypeCount[buttonName] : 0}</Text>
+    </View>
 }
 
 export default class MapPage extends React.Component {
@@ -37,19 +85,13 @@ export default class MapPage extends React.Component {
                 longitudeDelta: 0.0421,
             },
             zoom: 1,
-            typeButtonPressed: false,
         } 
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
-    }
-    updateTypeButtonPressed = () => {
-        console.log('typeButtonPressed ' + this.state.typeButtonPressed);
-        this.setState({ typeButtonPressed: !this.state.typeButtonPressed });
     }
 
     onRegionChange = (region) => {
         this.setState({ currentRegion: region })
         let zoom = Math.round(Math.log(360 / region.longitudeDelta) / Math.LN2);
-        console.log("zoom: " + zoom);
         this.setState({zoom: zoom});
         const currentRegion = this.state.currentRegion;
         let requestType = `${SERVER.ROOT}getNearbyEvents/type?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}`;
@@ -64,33 +106,43 @@ export default class MapPage extends React.Component {
             }
             this.setState({ crimeTypeCount: fetchedCrimeTypeCount })
         });
-        let requestPoints = `${SERVER.ROOT}getNearbyEvents/heatmap?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}`;
-        if (!this.state.typeButtonPressed) {
-            fetch(requestPoints)
+        let newDate = new Date();
+        let year = newDate.getFullYear();
+        let month = newDate.getMonth() + 1;
+        let requestPointsURL = "";
+        if (!anyButtonPressed) {
+            requestPointsURL = `${SERVER.ROOT}getNearbyEvents/heatmap?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}`;
+            fetch(requestPointsURL)
                 .then((response) => { return response.json(); })
                 .then((locationData) => {
-                    console.log("data count: " +locationData.length);
-                    let testpoint = {
-                            latitude: Number(currentRegion.latitude),
-                            longitude: Number(currentRegion.longitude),
-                    };
                     let fetchPointList = [];
-                    // console.log("locationdata " + locationData);
                     for (var i = 0; i < locationData.length; i++) {
                         let point = {
                             latitude: (Number(locationData[i].latitude)),
                             longitude: Number(locationData[i].longitude),
                         };
-                        // console.log("fetched point " + point.latitude + " " + point.longitude);
-                        // console.log("current point " + testpoint.latitude + " " + testpoint.longitude);
                         fetchPointList.push(point);
                     }
-                    // console.log(fetchPointList);
                     this.setState({ pointList: fetchPointList});
-                    // // this.setState({ testpoint})
-                    // console.log("test" + testpoint);
-                    // console.log("pointList " + this.state.pointList)
                 });
+        } else {
+            let fetchPointList = [];
+            currentPressedButtons.map((button, index) => {
+                let type = button.name;
+                requestPointsURL = `${SERVER.ROOT}getNearbyEvents/showType?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}&type=${type}`;
+                fetch(requestPointsURL)
+                    .then((response) => { return response.json(); })
+                    .then((locationData) => {
+                        for (var i = 0; i < locationData.length; i++) {
+                            let point = {
+                                latitude: (Number(locationData[i].latitude)),
+                                longitude: Number(locationData[i].longitude),
+                            };
+                            fetchPointList.push(point);
+                        }
+                        this.setState({ pointList: fetchPointList });
+                    })
+            })
         }
     }
     
@@ -105,45 +157,8 @@ export default class MapPage extends React.Component {
         })
     }
 
-    generateData = () => {
-        let points = [];
-        for (var i = 0; i < data.data.length; i++) {
-            var point = {
-                latitude: Number(data.data[i][0]), 
-                longitude: Number(data.data[i][1]), 
-                weight: Number(4)
-            };
-            points.push(point);
-        }
-        try {
-            this.setState({ pointList: points }, function() {
-                console.log("after set state");
-            });
-        } catch (err) {
-            alert("err");
-        }
-        return points;
-    }
-
-    searchCrimeType = (crimeType) => {
-        const currentRegion = this.state.currentRegion;
-        let requestString = `${SERVER.ROOT}getNearbyEvents/type?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}`;
-        fetch(requestString).then((response) => { return response.json(); })
-        .then((data) => {
-            console.log(data);
-        }) ;
-    }
-
-    onRegionChangeComplete = (region) => {
-        let latiDelta = region.latitudeDelta;
-        let longiDelta = region.longitudeDelta;
-        this.setState({ currentRegion: { latitudeDelta: latiDelta }})
-        this.setState({ currentRegion: { longitudeDelta: longiDelta }})
-    }
-    
     render() {
         let crimeTypeCount = this.state.crimeTypeCount;
-        // let points = this.state.pointList;
         return (
             <View style={{ flex: 1 }}>
                 <MapView
@@ -158,10 +173,7 @@ export default class MapPage extends React.Component {
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421,
                     }}
-                    onRegionChange={this.onRegionChange}
-                    // onRegionChangeComplete={this.onRegionChangeComplete}
-                // onPress={(event) => { this.createMarkerOnPress(event) }}
-                >
+                    onRegionChange={this.onRegionChange}>
                     {this.state.pointList.map((circle, index) => (
                         <Circle
                             key={index}
@@ -180,81 +192,9 @@ export default class MapPage extends React.Component {
                     />
                 </View>
                 <View style={styles.buttonContainer}>
-                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
-                        <Button
-                            buttonStyle={{ backgroundColor: 'white' }}
-                            type='clear'
-                            icon={<TypeIcon name='knife' size={30} action={this.updateTypeButtonPressed}/>}
-                            onPress={() => this.searchCrimeType('HOMICIDE')}
-                        />
-                        <Text style={{ fontSize: 8 }}>HOMICIDE</Text>
-                        <Text style={{ fontSize: 8 }}>{crimeTypeCount['HOMICIDE'] ? crimeTypeCount['HOMICIDE'] : 0}</Text>
-                    </View>
-                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
-                        <Button
-                            type='clear'
-                            icon={<TypeIcon name='drupal' size={30} action={this.updateTypeButtonPressed}/>}
-                            onPress={() => this.searchCrimeType('THEFT')}
-                        />
-                        <Text style={{ fontSize: 8 }}>THEFT</Text>
-                        <Text style={{ fontSize: 8 }}>
-                            {crimeTypeCount['MOTOR VEHICLE THEFT'] + crimeTypeCount['THEFT'] ? crimeTypeCount['MOTOR VEHICLE THEFT'] + crimeTypeCount['THEFT'] : 0}
-                        </Text>
-                    </View>
-                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
-                        <Button
-                            type='clear'
-                            icon={<TypeIcon name='kabaddi' size={30} action={this.updateTypeButtonPressed}/>}
-                            onPress={() => this.searchCrimeType('BATTERY')}
-                        />
-                        <Text style={{ fontSize: 8 }}>BATTERY</Text>
-                        <Text style={{ fontSize: 8 }}>{crimeTypeCount['BATTERY'] ? crimeTypeCount['BATTERY'] : 0}</Text>
-                    </View>
-                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
-                        <Button
-                            type='clear'
-                            icon={<TypeIcon name='home-alert' size={30} action={this.updateTypeButtonPressed}/>}
-                            onPress={() => this.searchCrimeType('DAMAGE')}
-                        />
-                        <Text style={{ fontSize: 8 }}>DAMAGE</Text>
-                        <Text style={{ fontSize: 8 }}>{crimeTypeCount['CRIMINAL DAMAGE'] ? crimeTypeCount['CRIMINAL DAMAGE'] : 0}</Text>
-                    </View>
-                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
-                        <Button
-                            type='clear'
-                            icon={<TypeIcon name='tea' size={30} action={this.updateTypeButtonPressed}/>}
-                            onPress={() => this.searchCrimeType('NARCOTICS')}
-                        />
-                        <Text style={{ fontSize: 8 }}>NARCOTICS</Text>
-                        <Text style={{ fontSize: 8 }}>{crimeTypeCount['NARCOTICS'] ? crimeTypeCount['NARCOTICS'] : 0}</Text>
-                    </View>
-                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
-                        <Button
-                            type='clear'
-                            icon={<TypeIcon name='karate' size={30} action={this.updateTypeButtonPressed}/>}
-                            onPress={() => this.searchCrimeType('ASSAULT')}
-                        />
-                        <Text style={{ fontSize: 8 }}>ASSAULT</Text>
-                        <Text style={{ fontSize: 8 }}>{crimeTypeCount['ASSAULT'] ? crimeTypeCount['ASSAULT'] : 0}</Text>
-                    </View>
-                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
-                        <Button
-                            type='clear'
-                            icon={<TypeIcon name='fire' size={30} action={this.updateTypeButtonPressed}/>}
-                            onPress={() => this.searchCrimeType('ARSON')}
-                        />
-                        <Text style={{ fontSize: 8 }}>ARSON</Text>
-                        <Text style={{ fontSize: 8 }}>{crimeTypeCount['ARSON'] ? crimeTypeCount['ARSON'] : 0}</Text>
-                    </View>
-                    <View style={{ backgroundColor: 'white', alignItems: 'center' }}>
-                        <Button
-                            type='clear'
-                            icon={<TypeIcon name='garage-alert' size={30} action={this.updateTypeButtonPressed}/>}
-                            onPress={() => this.searchCrimeType('BURGLARY')}
-                        />
-                        <Text style={{ fontSize: 8 }}>BURGLARY</Text>
-                        <Text style={{ fontSize: 8 }}>{crimeTypeCount['BURGLARY'] ? crimeTypeCount['BURGLARY'] : 0}</Text>
-                    </View>
+                    {buttonNames.map((name, index) => (
+                        <ButtonView name={name} crimeTypeCount={crimeTypeCount} iconName={iconNames[index]} pressStatus={buttonPressedStatus[name]}></ButtonView>
+                    ))}
                 </View>
             </View>
         );

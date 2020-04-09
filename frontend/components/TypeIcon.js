@@ -11,6 +11,7 @@ export default class TypeIcon extends React.Component {
             color: 'black',
         }
     }
+
     onPress = () => {
         this.props.action();
         if (!this.state.pressed) {
@@ -19,8 +20,8 @@ export default class TypeIcon extends React.Component {
             this.setState({ color: 'black' });
         }
         this.setState({pressed: !this.state.pressed});
-        
     }
+
     render() {
         return (
             <Icon name={this.state.name} size={this.state.size} color={this.state.color} onPress={this.onPress}/>
