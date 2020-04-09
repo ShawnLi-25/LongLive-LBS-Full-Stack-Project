@@ -17,32 +17,30 @@ module.exports = {
     // Deal with POST & GET Request
 
     // User report crime record (Foreign key constraint of events, times & locations)
-    // body-content: {"time": "xxx", "latitude": "xxx", "longitude": "xxx", "type": "xxx", "email": "xxx"}
+    // body-content: {"time": "xxx", "latitude": "xxx", "longitude": "xxx", "type": "xxx", "description": "xxx", "email": "xxx"}
     // endpoint: /report
-    report: function (req, res, next) {
+    reportUserRecord: function (req, res, next) {
         pool.getConnection(function (err, connection) {
             if (err) {
                 return console.error('Connection Error:' + err.message);
             }
 
             let result;
-            if(req.method == "GET") {
+            if(req.method === "GET") {
                 result = {
                     code: 400,
-                    msg: 'Bad Request! Should send POST!'
+                    msg: 'Bad Request!'
                 };
                 return res.status(400).json(result);
             }
 
             const bodyContent = req.body;
-            // Todo: Settle down required fields: time(client side), latitude, longitude, type
             if (bodyContent == null || bodyContent.time == null || bodyContent.latitude == null || bodyContent.longitude == null || bodyContent.type == null) {
                 result = {
                     code: 400,
-                    msg: 'Missing Required Parameters'
+                    msg: 'Missing body content'
                 };
-                res.json(result);
-                return;
+                return res.json(result);
             }
 
             // Foreigh key constriant with times & locations table
@@ -95,7 +93,7 @@ module.exports = {
                             console.log("Report Done!");
                             result = {
                                 code: 200,
-                                msg:'Report Succeed!',
+                                msg:'Report Succeed',
                                 reportID: eventRes.insertId
                             };
                             resolve(eventRes);
@@ -115,6 +113,115 @@ module.exports = {
                 return console.error('SQL Execution Error:' + err.message);
             });
         });
+    },
+
+    // Update user report crime record
+    // body-content: {"reportID": "xxx", "type": "xxx"}
+    // endpoint: /report
+    updateUserRecord: function(req, res, next) {
+        pool.getConnection( function (err, connection) {
+            if (err) {
+                return console.error('Connection Error:' + err.message);
+            }
+
+            let result;
+            if(req.method !== "PUT") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send PUT!'
+                };
+                return res.status(400).json(result);
+            }
+
+            const bodyContent = req.body;
+            const reportID = Number(bodyContent.reportID);
+            if (reportID == null) {
+                result = {
+                    code: 400,
+                    msg: 'Missing body content'
+                };
+                return res.json(result);
+            }
+
+            connection.query(query.getUserRecord, [reportID], function (err, row) {
+                if(err) {
+                    return console.error('SQL Execution Error:' + err.message);
+                }
+
+                if(row.length === 0) {
+                    result = {
+                        code: 404,
+                        msg: "Record not found!"
+                    }
+                }
+
+                let type = bodyContent.type == null ? row.Type : bodyContent.type;
+                let description = bodyContent.description == null ? row.Description : bodyContent.description;
+
+                connection.query(query.updateUserRecord, [type, description, reportID], function (err, updateRes) {
+                    if(err) {
+                        return console.error('SQL Execution Error:' + err.message);
+                    }
+
+                    if(updateRes) {
+                        console.log("Update Report Done!");
+                        result = {
+                            code: 200,
+                            msg: "Update report succeed"
+                        }
+                    }
+                    res.send(result);
+                    connection.release();
+                });
+            });
+
+        })
+    },
+
+    // Delete user report crime record
+    // endpoint: /report/reportID
+    deleteUserRecord: function(req, res, next) {
+        pool.getConnection( function (err, connection) {
+            if (err) {
+                return console.error('Connection Error:' + err.message);
+            }
+
+            let result;
+            if(req.method !== "DELETE") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send DELETE!'
+                };
+                return res.status(400).json(result);
+            }
+
+            const reportID = req.params.id;
+            if (reportID == null) {
+                result = {
+                    code: 400,
+                    msg: 'Missing reportID'
+                };
+                return res.json(result);
+            }
+
+            connection.query(query.deleteUserRecord, [reportID], function (err, delRes) {
+                if(err) {
+                    return console.error('SQL Execution Error:' + err.message);
+                }
+
+                if(delRes) {
+                    console.log("Delete Report Done!");
+                    result = {
+                        code: 200,
+                        msg:'Delete report succeed!',
+                    };
+                }
+                /* send back to client */
+                res.send(result);
+                connection.release();
+            });
+
+        })
     },
 
     // Get nearby locations based on square-distance for HeatMap
@@ -170,8 +277,7 @@ module.exports = {
         });
     },
 
-    // Get nearby events
-    // endpoint: /getNearbyEvents/heatmap?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&year=xx&month=xxx
+    // Get nearby events based on location & time
     getNearbyEvents: function (req, res, next, event) {
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -190,6 +296,7 @@ module.exports = {
             const param = req.query;
             if(param.longitude == null || param.latitude == null || param.latDelta == null || param.lngDelta == null
                 || param.longitude === 'undefined' || param.latitude === 'undefined'
+                || event == null || event === ""
                 || event === 'showType' && param.type == null) {
                 result = {
                     code: 400,
@@ -200,9 +307,9 @@ module.exports = {
 
             // Generate parameters for query
             const latLimit = param.latDelta / 2, lngLimit = param.lngDelta / 2;
-
-            const year = param.year != null ? param.year : 2020;
-            const month = param.month != null ? param.month : 2;
+            // Todo: no hardcode
+            const year = param.year != null ? param.year : new Date().getFullYear();
+            const month = param.month != null ? param.month : new Date().getMonth();
             const type = param.type != null ? param.type.toUpperCase() : "HOMICIDE";
 
             connection.query(query.getNearbyLocs, [param.latitude, latLimit, param.longitude, lngLimit, conf.HEATMAPLIMIT], function (err, rows) {
@@ -210,13 +317,18 @@ module.exports = {
                     return console.error('SQL Execution Error:' + err.message);
                 }
 
-                let locList = rows.map(i => i.Location);
+                // Deal with location miss data
+                let locList = rows.filter(function(row) {
+                    return row.Location != null && row.Location !== "";
+                }).map(i => i.Location);
+
                 if (locList === 'undefined' || locList.length === 0) {
                     const objs = [];
                     connection.release();
                     return res.send(JSON.stringify(objs));
                 }
-
+                // Get nearby events location for heatmap
+                // endpoint: /getNearbyEvents/heatmap?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&year=xxx&month=xxx
                 if (event === 'heatmap') {
 
                     connection.query(query.getHeatmapEvents, [locList, year, month, locList, year, month, conf.HEATMAPLIMIT], function (err, rows) {
@@ -236,8 +348,9 @@ module.exports = {
                         connection.release();
                     });
                 }
-
-                else if(event === 'type') {
+                // Get nearby # of events group by type
+                // endpoint: /getNearbyEvents/type?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&type=xxx&year=xxx&month=xxx
+                else if (event === 'type') {
                     connection.query(query.getEventNumByType, [locList, year, month, locList, year, month, conf.HEATMAPLIMIT], function (err, rows) {
                         if (err) {
                             return console.error('SQL Execution Error:' + err.message);
@@ -255,7 +368,8 @@ module.exports = {
                         connection.release();
                     });
                 }
-
+                // Get nearby events location of specific type
+                // endpoint: /getNearbyEvents/type?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&type=xxx&year=xxx&month=xxx
                 else if (event === "showType") {
                     connection.query(query.getNearbyEventsByType, [locList, type, year, month, locList, type, year, month, conf.HEATMAPLIMIT], function (err, rows) {
                         if (err) {
@@ -273,6 +387,14 @@ module.exports = {
                         res.send(JSON.stringify(objs));
                         connection.release();
                     });
+                }
+                //Unsupported endpoint check
+                else {
+                    result = {
+                        code: 400,
+                        msg: 'Bad Request! Should send GET!'
+                    };
+                    return res.status(400).json(result);
                 }
 
             });
@@ -298,7 +420,7 @@ module.exports = {
             }
 
             const param = req.query;
-            connection.query(query.joinQuery, [param.latitude, param.longitude, conf.RADIUS, param.latitude, param.longitude, conf.HEATMAPLIMIT], function (err, rows) {
+            connection.query(query.getSrcDetail, [param.latitude, param.longitude, conf.RADIUS, param.latitude, param.longitude, conf.HEATMAPLIMIT], function (err, rows) {
                 if(err) {
                     return console.error('SQL Execution Error:' + err.message);
                 }

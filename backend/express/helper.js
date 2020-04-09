@@ -19,7 +19,7 @@ module.exports = {
         let month = newDate.getMonth() + 1;
         let date = newDate.getDate();
         let hour = newDate.getHours();
-        let min = newDate.getMinutes();
+        let min = (newDate.getMinutes() < 10 ? '0' : '') + newDate.getMinutes();
         let time = "" + month + "/" + date + "/" + year + " " + hour + ":" + min;
         return [time, year, month, date, hour, min];
     },
