@@ -41,7 +41,7 @@ passport.use('local-login', new LocalStrategy({
         passReqToCallback : true
     },
     function(req, email, password, done) {
-        connection.query(query.login, [email],function(err, rows) {
+        connection.query(query.login, [email], function(err, rows) {
             if (err)
                 return done(err);
 

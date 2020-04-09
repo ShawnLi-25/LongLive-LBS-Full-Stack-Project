@@ -1,4 +1,7 @@
 var query = {
+    insertUserRecord:
+        'INSERT INTO userRecords(Time, Location, Type, Description, email) ' +
+        'VALUES (?, ?, ?, ?, ?)',
     insertEvent:
         'INSERT INTO events(Time, Location, Type, Arrest, Source, Description) ' +
         'VALUES (?, ?, ?, ?, ?, ?)',
@@ -10,15 +13,64 @@ var query = {
         'VALUES (?, ?, ?, ?, ?, ?, ?, ?)' +
         'ON DUPLICATE KEY UPDATE Block = VALUES(Block), Beat = VALUES(Beat), District = VALUES(District), Ward = VALUES(Ward), CommunityArea = VALUES(CommunityArea)',
     getNearbyLocs:
-        'SELECT locations.Location, locations.Latitude, locations.Longitude, (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) as Distance ' +
+        'SELECT locations.Location, locations.Latitude, locations.Longitude ' +
         'FROM locations ' +
-        'WHERE (POWER(? - locations.Latitude, 2) + POWER(? - locations.Longitude, 2)) < ? ' +
-        'ORDER BY Distance ' +
+        'WHERE ABS(? - locations.Latitude) < ? AND ABS(? - locations.Longitude) < ? ' +
         'LIMIT ?',
-    getNearbyEvents:
-        'SELECT Time, Type, Description ' +
+    getHeatmapEvents:
+        'SELECT L.Latitude AS latitude, L.Longitude AS longitude ' +
+        'FROM locations L NATURAL JOIN events E ' +
+        'NATURAL JOIN times T ' +
+        'WHERE E.Location IN (?) AND T.Year = ? AND T.Month = ? ' +
+        'UNION ' +
+        'SELECT L2.Latitude, L2.Longitude ' +
+        'FROM locations L2 NATURAL JOIN userRecords U ' +
+        'NATURAL JOIN times T2 ' +
+        'WHERE U.Location IN (?) AND T2.Year = ? AND T2.Month = ? ' +
+        'LIMIT ?',
+    getNearbyEventsByType:
+        'SELECT L.Latitude AS latitude, L.Longitude AS longitude ' +
+        'FROM locations L NATURAL JOIN events E ' +
+        'NATURAL JOIN times T ' +
+        'WHERE E.Location IN (?) AND E.Type = ? AND T.Year = ? AND T.Month = ? '+
+        'UNION ' +
+        'SELECT L2.Latitude, L2.Longitude ' +
+        'FROM locations L2 NATURAL JOIN userRecords U ' +
+        'NATURAL JOIN times T2 ' +
+        'WHERE U.Location IN (?) AND U.Type = ? AND T2.Year = ? AND T2.Month = ? ' +
+        'LIMIT ?',
+    getEventsDetails:
+        'SELECT Time, Location, Type, Description ' +
         'FROM events ' +
-        'WHERE events.Location IN (?)' +
+        'WHERE events.Location IN (?) AND events.Type = ? '+
+        'UNION ' +
+        'SELECT Time, Location, Type, Description ' +
+        'FROM userRecords ' +
+        'WHERE userRecords.Location IN (?) AND userRecords.Type = ? ' +
+        'LIMIT ?',
+    getEventNumByType:
+        'SELECT Type, COUNT(*) AS Num ' +
+        'FROM (' +
+        'SELECT Type ' +
+        'FROM events ' +
+        'NATURAL JOIN times T ' +
+        'WHERE events.Location IN (?) AND T.Year = ? AND T.Month = ? ' +
+        'UNION ALL ' +
+        'SELECT Type ' +
+        'FROM userRecords ' +
+        'NATURAL JOIN times T2 ' +
+        'WHERE userRecords.Location IN (?) AND T2.Year = ? AND T2.Month = ? ' +
+        'LIMIT ?' +
+        ') t ' +
+        'GROUP BY Type',
+    joinQuery:
+        'SELECT E.Time, E.Type, E.Description ' +
+        'FROM events E NATURAL JOIN locations L ' +
+        'WHERE L.Location IN (' +
+        'SELECT L2.Location ' +
+        'FROM locations L2 ' +
+        'WHERE (POWER(? - L2.Latitude, 2) + POWER(? - L2.Longitude, 2)) < ? ' +
+        'ORDER BY (POWER(? - L2.Latitude, 2) + POWER(? - L2.Longitude, 2)))' +
         'LIMIT ?',
     queryAll:
         'SELECT * FROM events',
@@ -34,6 +86,17 @@ var query = {
             password varchar(50) not null,
             mobile int(11)
         ) AUTO_INCREMENT = 2;`,
+    createUserRecord:
+            `create table if not exists userRecords (
+                ReportID int unsigned AUTO_INCREMENT PRIMARY KEY,
+                email varchar(50),
+                Time varchar(255) not null,
+                Location varchar(255) not null,
+                Type varchar(255) not null,
+                Description varchar(255),
+                FOREIGN KEY (Time) REFERENCES times(Time) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (Location) REFERENCES locations(Location) ON DELETE CASCADE ON UPDATE CASCADE
+            )`,
     createEvent:
         `create table if not exists events (
             EventID int unsigned AUTO_INCREMENT PRIMARY KEY,
@@ -42,7 +105,7 @@ var query = {
             Type varchar(255) not null,
             Description varchar(255),
             Arrest enum('TRUE', 'FALSE'),
-            Source enum('Official', 'Report') not null,
+            Source enum('Official', 'Report'),
             FOREIGN KEY (Time) REFERENCES times(Time) ON DELETE CASCADE ON UPDATE CASCADE,
             FOREIGN KEY (Location) REFERENCES locations(Location) ON DELETE CASCADE ON UPDATE CASCADE
             )`,
@@ -63,8 +126,8 @@ var query = {
             District int unsigned,
             Ward int unsigned,
             CommunityArea int unsigned,
-            Longitude float not null,
-            Latitude float not null
+            Latitude double(14, 9) not null,
+            Longitude double(14, 9) not null
             )`,
     createMap:
         `create table if not exists map (
