@@ -1,0 +1,13 @@
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSExceptionDomains</key>
+    <dict>
+        <key>localhost</key>
+        <dict>
+            <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+            <true/>
+        </dict>
+    </dict>
+</dict>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>This app needs to get your location...</string>

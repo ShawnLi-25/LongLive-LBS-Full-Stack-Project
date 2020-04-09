@@ -14,19 +14,29 @@ const pool = mysql.createPool({
 });
 
 module.exports = {
+    // Deal with POST & GET Request
 
     // User report crime record (Foreign key constriant of events, times & locations)
-    insert: function (req, res, next) {
+    // body-content: {"time": "xxx", "latitude": "xxx", "longitude": "xxx", "type": "xxx", "source": "xxx"}
+    // endpoint: /report
+    report: function (req, res, next) {
         pool.getConnection(function (err, connection) {
             if (err) {
                 return console.error('Connection Error:' + err.message);
             }
-            // URL: http://.....?x=a&y=b
-            var param = req.query;
 
-            // Todo: Settle down required fields: time(client side), latitude, longitude, type & source
             let result;
-            if (param == null || param.time == null || param.latitude == null || param.longitude == null || param.type == null || param.source == null) {
+            if(req.method == "GET") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send POST!'
+                };
+                return res.status(400).json(result);
+            }
+
+            var bodyContent = req.body;
+            // Todo: Settle down required fields: time(client side), latitude, longitude, type & source
+            if (bodyContent == null || bodyContent.time == null || bodyContent.latitude == null || bodyContent.longitude == null || bodyContent.type == null || bodyContent.source == null) {
                 result = {
                     code: 400,
                     msg: 'Missing Required Parameters'
@@ -42,10 +52,14 @@ module.exports = {
             const insertTime = () => {
                 return new Promise((resolve, reject) => {
                     connection.query(query.insertTime, timeParams, function (err, timeRes) {
-                        if(err)
-                            return console.error('SQL Execution Error:' + err.message);
-                        if(timeRes)
+                        if(err) {
+                            reject(err);
+                            console.error('SQL Execution Error:' + err.message);
+                        }
+                        if(timeRes) {
                             console.log("Insert into times ok");
+                            resolve(timeRes);
+                        }
                     })
                 })
             };
@@ -55,10 +69,14 @@ module.exports = {
                     connection.query(query.insertLoc,
                         [locKey, param.latitude, param.longitude, param.block, param.beat, param.district, param.ward, param.communityArea], function(err, locRes) {
 
-                        if(err)
+                        if(err) {
+                            reject(err);
                             return console.error('SQL Execution Error:' + err.message);
-                        if(locRes)
-                            console.log("Insert into locations ok!")
+                        }
+                        if(locRes) {
+                            console.log("Insert into locations ok!");
+                            resolve(locRes);
+                        }
                     })
                 })
             };
@@ -68,16 +86,20 @@ module.exports = {
                     connection.query(query.insertEvent,
                         [timeParams[0], locKey, param.type, param.arrest, param.source, param.description], function (err, eventRes) {
 
-                        if(err)
-                            return console.error('SQL Execution Error:' + err.message);
+                        if(err) {
+                            reject(err);
+                            console.error('SQL Execution Error:' + err.message);
+                        }
                         if(eventRes) {
                             console.log("Report Done!");
                             result = {
                                 code: 200,
                                 msg:'Report Succeed!'
                             };
+                            resolve(eventRes);
                         }
-                        res.json(result);
+                        /* send back to client */
+                        res.send(JSON.stringify(objs));
                         connection.release();
                     })
                 })
@@ -88,28 +110,36 @@ module.exports = {
             .then(insertEvent())
             .catch((err) => {
                 connection.close();
+                return console.error('SQL Execution Error:' + err.message);
             });
-
         });
     },
 
     // Get nearby locations based on square-distance for HeatMap
+    // endpoint: /getNearbyLocs?latitude=xxx&longitude=xxx
     getNearbyLocs: function (req, res, next) {
         pool.getConnection(function (err, connection) {
             if (err) {
                 return console.error('Connection Error:' + err.message);
             }
 
-            var param = req.query;
+            let result;
+            if(req.method == "POST") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send GET!'
+                };
+                return res.status(400).json(result);
+            }
 
-            connection.query(query.getNearbyLocs, [param.latitude, param.longitude, param.latitude, param.longitude, conf.RADIUS], function (err, rows) {
+            var param = req.query;
+            connection.query(query.getNearbyLocs, [param.latitude, param.longitude, param.latitude, param.longitude, conf.RADIUS, conf.HEATMAPLIMIT], function (err, rows) {
                 if(err) {
                     return console.error('SQL Execution Error:' + err.message);
                 }
 
                 var objs = [];
 
-                let result;
                 if (rows) {
                     console.log(rows);
                     for (let i = 0; i < rows.length; i++) {
@@ -120,43 +150,62 @@ module.exports = {
                         msg: 'Get Nearyby Locations Succeed!'
                     };
                 }
-                res.json(result);
-                // res.end(JSON.stringify(objs));
+
+                /* send back to client */
+                res.send(JSON.stringify(objs));
                 connection.release();
             });
         });
     },
 
     // Get nearby events based on square-distance for user input
+    // endpoint: /getNearbyEvents?latitude=xxx&longitude=xxx
     getNearbyEvents: function (req, res, next) {
         pool.getConnection(function (err, connection) {
             if (err) {
                 return console.error('Connection Error:' + err.message);
             }
 
-            var param = req.query;
+            let result;
+            if(req.method == "POST") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send GET!'
+                };
+                return res.status(400).json(result);
+            }
 
-            connection.query(query.getNearbyEvents, [param.latitude, param.longitude, param.latitude, param.longitude, conf.RADIUS, conf.EVENTNUM], function (err, rows) {
+            var param = req.query;
+            connection.query(query.getNearbyLocs, [param.latitude, param.longitude, param.latitude, param.longitude, conf.RADIUS, conf.HEATMAPLIMIT], function (err, rows) {
                 if(err) {
                     return console.error('SQL Execution Error:' + err.message);
                 }
 
-                var objs = [];
+                let locList = rows.map(i => i.Location);
 
-                if(rows) {
-                    console.log(rows);
-                    for(let i = 0; i < rows.length; i++) {
-                        objs.push(rows[i]);
+                connection.query(query.getNearbyEvents, [locList, conf.EVENTNUM], function (err, rows) {
+                    if(err) {
+                        return console.error('SQL Execution Error:' + err.message);
                     }
-                    result = {
-                        code: 200,
-                        msg:'Get Clicked Events Succeed!'
-                    };
-                }
-                res.json(result);
-                // res.end(JSON.stringify(objs));
-                connection.release();
+
+                    var objs = [];
+
+                    if(rows) {
+                        console.log(rows);
+                        for(let i = 0; i < rows.length; i++) {
+                            objs.push(rows[i]);
+                        }
+                        result = {
+                            code: 200,
+                            msg:'Get Nearby Events Succeed!'
+                        };
+                    }
+
+                    res.send(JSON.stringify(objs));
+                    connection.release();
+                });
             });
+
         });
     },
 

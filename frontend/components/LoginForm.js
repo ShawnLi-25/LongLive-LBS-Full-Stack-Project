@@ -1,8 +1,7 @@
 
 import React, { Component } from 'react';
 import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
-const serverURL = "http://ec2-3-21-169-166.us-east-2.compute.amazonaws.com:3000/login";
-import AppContainer from './StarterPage.js';
+import SERVER from '../config';
 
 export default class LoginForm extends Component {
     constructor(props) {
@@ -13,53 +12,27 @@ export default class LoginForm extends Component {
             navigation: this.props.navigation,
         }
     }
-    componentWillMount = () => {
-        this.setState({ navigation: this.props.navigation})
-    }
-
     saveData = () => {
         const { email, password, navigation } = this.state;
-        let loginDetails = {
-            email: email,
-            password: password
-        }
-        // if (this.props.type !== 'Login') {
-            // AsyncStorage.setItem('loginDetails', JSON.stringify(loginDetails));
-            // Keyboard.dismiss();
-            // alert("You successfully registered. Email: " + email + ' password: ' + password);
-            // this.login();
-        // }
-        // else if (this.props.type == 'Login') {
-            // try {
-            //     let loginDetails = await AsyncStorage.getItem('loginDetails');
-            //     let ld = JSON.parse(loginDetails);
-            //     if (ld.email != null && ld.password != null) {
-            //         if (ld.email == email && ld.password == password) {
-            //             alert('Go in!');
-            //         } else {
-            //             alert('Email and Password does not exist!');
-            //         }
-            //     }
-            // } catch (error) {
-            //     alert(error);
-            // }
-        // }
-        // fetch(serverURL, {
-        //     method: 'POST',
-        //     headers: {
-        //         Accept: 'application/json',
-        //         'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify({
-        //         email: email,
-        //         password: password,
-        //     }),
-        // }).then(response => {
-        //     if (response.status == 200) {
-        //         this.props.navigation.navigate("MapPage");
-        //     }
-        // }) 
-        navigation.navigate("Map");
+        fetch(SERVER.LOGIN, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+            }),
+        }).then(response => {
+            if (response.status == 200) {
+                console.log("success login");
+                navigation.navigate("Map");
+            } else {
+                console.log(response.status);
+            }
+        }) 
+        // navigation.navigate("Map");
     }
     render() {
         return (
@@ -72,7 +45,6 @@ export default class LoginForm extends Component {
                     selectionColor="#fff"
                     keyboardType="email-address"
                     onSubmitEditing={() => this.password.focus()} />
-
                 <TextInput style={styles.inputBox}
                     onChangeText={(password) => this.setState({ password })}
                     underlineColorAndroid='rgba(0,0,0,0)'

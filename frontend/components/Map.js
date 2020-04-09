@@ -1,83 +1,170 @@
 import React from 'react';
-import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import { Button } from 'react-native-elements';
-import { StyleSheet, Text, View, Dimensions, TouchableHighlight } from 'react-native';
-import data from "../Data/test.json";
+import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import SERVER from '../config';
+import TypeIcon from './TypeIcon';
+
+let typeCount = SERVER.typeCount;
+let buttonNames = SERVER.buttonNames;
+let iconNames = SERVER.iconNames;
+let buttonPressedStatus = buttonStatusInit(buttonNames);
+let currentPressedButtons = [];
+let anyButtonPressed = false;
+
+function buttonStatusInit (names) {
+    let buttonPressedStatusList = [];
+    for (var i = 0; i < names.length; i++) {
+        let button = {
+            name: names[i],
+            status: false,
+        }
+        buttonPressedStatusList.push(button);
+    }
+    return buttonPressedStatusList;
+}
+
+function Circle({ onLayout, ...props }) {
+    const ref = React.useRef();
+    function onLayoutCircle() {
+        if (ref.current) {
+            ref.current.setNativeProps({ fillColor: props.fillColor });
+            ref.current.setNativeProps({ strokeColor: props.strokeColor});
+        }
+    }
+    return <MapView.Circle ref={ref} onLayout={onLayoutCircle} {...props} />;
+}
+
+function ButtonView({...props}) {
+    const ref = React.useRef();
+    const buttonName = props.name;
+    const crimeTypeCount = props.crimeTypeCount;
+    const iconName = props.iconName;
+    
+    function onPressButtonView() {
+        currentPressedButtons = [];
+        anyButtonPressed = false;
+        buttonPressedStatus.map((button, index) => {
+            if (button.name == buttonName) {
+                button.status = !button.status;
+            }
+            if (button.status) {
+                anyButtonPressed = true;
+                currentPressedButtons.push(button);
+            }
+        })
+    }
+
+    return <View ref={ref} style={{ backgroundColor: 'white', alignItems: 'center' }}>
+        <Button
+            buttonStyle={{ backgroundColor: 'white' }}
+            type='clear'
+            icon={<TypeIcon name={iconName} size={30} action={onPressButtonView} />}
+        />
+        <Text style={{ fontSize: 8 }}>{buttonName}</Text>
+        <Text style={{ fontSize: 8 }}>{crimeTypeCount[buttonName] ? crimeTypeCount[buttonName] : 0}</Text>
+    </View>
+}
 
 export default class MapPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            region: {
+            markers: [],
+            index: 0,
+            pointList: [],
+            navigation: this.props.navigation,
+            currentMarkerPressed: false,
+            numHomicide: 0,
+            crimeTypeCount: typeCount,
+            currentRegion: {
                 latitude: 41.88825,
                 longitude: -87.6324,
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
             },
-            markers: [],
-            index: 0,
-            pointList: this.generateData(),
-            navigation: this.props.navigation,
-        }
+            zoom: 1,
+        } 
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
     }
 
     onRegionChange = (region) => {
-        this.setState({ region })
+        this.setState({ currentRegion: region })
+        let zoom = Math.round(Math.log(360 / region.longitudeDelta) / Math.LN2);
+        this.setState({zoom: zoom});
+        const currentRegion = this.state.currentRegion;
+        let requestType = `${SERVER.ROOT}getNearbyEvents/type?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}`;
+        fetch(requestType)
+        .then((response) => { return response.json(); })
+        .then((typeCountData) => {
+            let fetchedCrimeTypeCount = typeCount;
+            for (var i = 0; i < typeCountData.length; i++) {
+                let type = typeCountData[i]['Type'];
+                let count = typeCountData[i]['Num'];
+                fetchedCrimeTypeCount[type] = count
+            }
+            this.setState({ crimeTypeCount: fetchedCrimeTypeCount })
+        });
+        let newDate = new Date();
+        let year = newDate.getFullYear();
+        let month = newDate.getMonth() + 1;
+        let requestPointsURL = "";
+        if (!anyButtonPressed) {
+            requestPointsURL = `${SERVER.ROOT}getNearbyEvents/heatmap?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}`;
+            fetch(requestPointsURL)
+                .then((response) => { return response.json(); })
+                .then((locationData) => {
+                    let fetchPointList = [];
+                    for (var i = 0; i < locationData.length; i++) {
+                        let point = {
+                            latitude: (Number(locationData[i].latitude)),
+                            longitude: Number(locationData[i].longitude),
+                        };
+                        fetchPointList.push(point);
+                    }
+                    this.setState({ pointList: fetchPointList});
+                });
+        } else {
+            let fetchPointList = [];
+            currentPressedButtons.map((button, index) => {
+                let type = button.name;
+                requestPointsURL = `${SERVER.ROOT}getNearbyEvents/showType?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}&type=${type}`;
+                fetch(requestPointsURL)
+                    .then((response) => { return response.json(); })
+                    .then((locationData) => {
+                        for (var i = 0; i < locationData.length; i++) {
+                            let point = {
+                                latitude: (Number(locationData[i].latitude)),
+                                longitude: Number(locationData[i].longitude),
+                            };
+                            fetchPointList.push(point);
+                        }
+                        this.setState({ pointList: fetchPointList });
+                    })
+            })
+        }
     }
-
-    componentWillMount = () => {
-        this.setState({ navigation: this.props.navigation })
-    }
-
-    createMarkerOnPress = (pressedPosition) => {
+    
+    createMarkerOnPress = (event) => {
         this.setState({
             markers: [
                 ...this.state.markers,
                 {
-                    coordinate: pressedPosition.nativeEvent.coordinate,
+                    coordinate: event.nativeEvent.coordinate,
                 }
             ]
         })
     }
-    onMarkerDragEnd = (coord, index) => {
-        const { latLng } = coord;
-        const lat = latLng.lat();
-        const lng = latLng.lng();
-        this.setState(prevState => {
-            const markers = [...this.state.markers];
-            markers[index] = { ...markers[index], position: { lat, lng } };
-            return { markers };
-        });
-    };
-
-    generateData = () => {
-        let points = [];
-        for (var i = 0; i < data.data.length; i++) {
-            var point = {
-                latitude: Number(data.data[i][0]), 
-                longitude: Number(data.data[i][1]), 
-                weight: Number(4)
-            };
-            points.push(point);
-        }
-        try {
-            this.setState({ pointList: points }, function() {
-                console.log("after set state");
-            });
-        } catch (err) {
-            alert("err");
-        }
-        return points;
-    }
 
     render() {
+        let crimeTypeCount = this.state.crimeTypeCount;
         return (
             <View style={{ flex: 1 }}>
                 <MapView
                     provider={PROVIDER_GOOGLE}
                     showsUserLocation
+                    followsUserLocation={true}
                     showsMyLocationButton
                     style={{ flex: 1 }}
                     initialRegion={{
@@ -85,46 +172,40 @@ export default class MapPage extends React.Component {
                         longitude: -87.6324,
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421,
-                    }} 
-                    region={this.state.region}
-                    onRegionChange={this.onRegionChange}
-                    onPress={this.createMarkerOnPress}
-                    onPress={(event) => console.log(event.nativeEvent.coordinate)}
-                    >
-                    {this.state.markers.map((marker, index) => (
-                        <Marker
-                            draggable 
-                            position={this.position}
-                            onDragEnd={(e) => this.setState({ x: e.nativeEvent.coordinate })}
-                        {...marker}/>
+                    }}
+                    onRegionChange={this.onRegionChange}>
+                    {this.state.pointList.map((circle, index) => (
+                        <Circle
+                            key={index}
+                            center={circle}
+                            radius={30}
+                            fillColor='#FD7659'
+                            strokeColor='transparent'
+                            {...circle}/>
                     ))}
-                    <Heatmap 
-                        points={this.state.pointList}
-                        opacity={7}
-                        radius={50}
-                        maxIntensity={100}
-                        heatmapMode={"POINTS_DENSITY"}
-                    >
-                    </Heatmap>
                 </MapView>
-                <View style={{
-                    position: 'absolute', //use absolute position to show button on top of the map
-                    top: '0%', 
-                    right: '0%',
-                    flex: 1,
-                }}><Button
+                <View style={styles.userProfileButtonContainer}>
+                    <Button
                         onPress={() => { this.props.navigation.openDrawer() }}
                         type='clear'
-                        icon={<Icon name='face-profile' size='60' />}
-                    /></View>
+                        icon={<Icon name='face-profile' size={60} />}
+                    />
+                </View>
+                <View style={styles.buttonContainer}>
+                    {buttonNames.map((name, index) => (
+                        <ButtonView name={name} crimeTypeCount={crimeTypeCount} iconName={iconNames[index]} pressStatus={buttonPressedStatus[name]}></ButtonView>
+                    ))}
+                </View>
             </View>
         );
-    }
+    };
 }
+
 
 const styles = StyleSheet.create({
     container: {
-        flex: 0,
+        flex: 1,
+        flexDirection: 'column',
         backgroundColor: 'black',
         alignItems: 'center',
         justifyContent: 'center',
@@ -134,23 +215,19 @@ const styles = StyleSheet.create({
         width: Dimensions.get('window').width,
         height: Dimensions.get('window').height
     },
-    alert_button: {
-        color: 'red'
-    },
-    userProfileButton: {
+    userProfileButtonContainer: {
+        position: 'absolute',
+        top: '79%',
+        right: '0%',
         flex: 1,
-        justifyContent: 'flex-end',
-        marginBottom: 36
     },
-    markerWrap: {
-        alignItems: "center",
-        justifyContent: "center",
+    buttonContainer: {
+        flexDirection: 'column',
+        position: 'absolute',
+        flex: 1,
+        top: '5%',
+        right: '0%',
+        alignItems: 'center',
+        width: '15%',
     },
-    marker: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: "rgba(130,4,150, 0.9)",
-    },
-
 });
