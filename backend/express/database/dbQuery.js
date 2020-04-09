@@ -19,14 +19,27 @@ var query = {
         'LIMIT ?',
     getHeatmapEvents:
         'SELECT L.Latitude AS latitude, L.Longitude AS longitude ' +
-        'FROM locations L NATURAL JOIN events ' +
-        'WHERE events.Location IN (?)' +
+        'FROM locations L NATURAL JOIN events E ' +
+        'NATURAL JOIN times T ' +
+        'WHERE E.Location IN (?) AND T.Year = ? AND T.Month = ? ' +
         'UNION ' +
         'SELECT L2.Latitude, L2.Longitude ' +
-        'FROM locations L2 NATURAL JOIN userRecords ' +
-        'WHERE userRecords.Location IN (?)' +
+        'FROM locations L2 NATURAL JOIN userRecords U ' +
+        'NATURAL JOIN times T2 ' +
+        'WHERE U.Location IN (?) AND T2.Year = ? AND T2.Month = ? ' +
         'LIMIT ?',
-    getNearbyEventsDetails:
+    getNearbyEventsByType:
+        'SELECT L.Latitude AS latitude, L.Longitude AS longitude ' +
+        'FROM locations L NATURAL JOIN events E ' +
+        'NATURAL JOIN times T ' +
+        'WHERE E.Location IN (?) AND E.Type = ? AND T.Year = ? AND T.Month = ? '+
+        'UNION ' +
+        'SELECT L2.Latitude, L2.Longitude ' +
+        'FROM locations L2 NATURAL JOIN userRecords U ' +
+        'NATURAL JOIN times T2 ' +
+        'WHERE U.Location IN (?) AND U.Type = ? AND T2.Year = ? AND T2.Month = ? ' +
+        'LIMIT ?',
+    getEventsDetails:
         'SELECT Time, Location, Type, Description ' +
         'FROM events ' +
         'WHERE events.Location IN (?) AND events.Type = ? '+
@@ -40,11 +53,13 @@ var query = {
         'FROM (' +
         'SELECT Type ' +
         'FROM events ' +
-        'WHERE events.Location IN (?)' +
+        'NATURAL JOIN times T ' +
+        'WHERE events.Location IN (?) AND T.Year = ? AND T.Month = ? ' +
         'UNION ALL ' +
         'SELECT Type ' +
         'FROM userRecords ' +
-        'WHERE userRecords.Location IN (?)' +
+        'NATURAL JOIN times T2 ' +
+        'WHERE userRecords.Location IN (?) AND T2.Year = ? AND T2.Month = ? ' +
         'LIMIT ?' +
         ') t ' +
         'GROUP BY Type',
@@ -57,7 +72,7 @@ var query = {
         'WHERE (POWER(? - L2.Latitude, 2) + POWER(? - L2.Longitude, 2)) < ? ' +
         'ORDER BY (POWER(? - L2.Latitude, 2) + POWER(? - L2.Longitude, 2)))' +
         'LIMIT ?',
-        queryAll:
+    queryAll:
         'SELECT * FROM events',
     login:
         'SELECT * FROM users WHERE email = ?',

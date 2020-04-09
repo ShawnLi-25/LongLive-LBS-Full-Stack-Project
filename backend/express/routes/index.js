@@ -47,8 +47,8 @@ router.get('/getNearbyEvents/type', function(req, res, next) {
 });
 
 /* Get Nearby Events for specific type */
-router.get('/getNearbyEvents/detail', function(req, res, next) {
-  accessDB.getNearbyEvents(req, res, next, "detail");
+router.get('/getNearbyEvents/showType', function(req, res, next) {
+  accessDB.getNearbyEvents(req, res, next, "showType");
 });
 
 /* Get Nearby Eevnts from official data */

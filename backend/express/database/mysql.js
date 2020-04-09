@@ -16,7 +16,7 @@ const pool = mysql.createPool({
 module.exports = {
     // Deal with POST & GET Request
 
-    // User report crime record (Foreign key constriant of events, times & locations)
+    // User report crime record (Foreign key constraint of events, times & locations)
     // body-content: {"time": "xxx", "latitude": "xxx", "longitude": "xxx", "type": "xxx", "email": "xxx"}
     // endpoint: /report
     report: function (req, res, next) {
@@ -171,7 +171,7 @@ module.exports = {
     },
 
     // Get nearby events
-    // endpoint: 1) /getNearbyEvents/heatmap?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx
+    // endpoint: /getNearbyEvents/heatmap?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&year=xx&month=xxx
     getNearbyEvents: function (req, res, next, event) {
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -190,7 +190,7 @@ module.exports = {
             const param = req.query;
             if(param.longitude == null || param.latitude == null || param.latDelta == null || param.lngDelta == null
                 || param.longitude === 'undefined' || param.latitude === 'undefined'
-                || event === 'detail' && param.type == null) {
+                || event === 'showType' && param.type == null) {
                 result = {
                     code: 400,
                     msg: 'Bad Request! Missing parameters or undefined'
@@ -198,15 +198,14 @@ module.exports = {
                 return res.status(400).json(result);
             }
 
-            // GetNearby Locations
+            // Generate parameters for query
             const latLimit = param.latDelta / 2, lngLimit = param.lngDelta / 2;
 
-            var pre_query = new Date().getTime();
-            connection.query(query.getNearbyLocs, [param.latitude, latLimit, param.longitude, lngLimit, conf.HEATMAPLIMIT], function (err, rows) {
-                var post_query = new Date().getTime();
-                var duration = (post_query - pre_query) / 1000;
-                console.log("getNearbyLocs time is:" + duration);
+            const year = param.year != null ? param.year : 2020;
+            const month = param.month != null ? param.month : 2;
+            const type = param.type != null ? param.type.toUpperCase() : "HOMICIDE";
 
+            connection.query(query.getNearbyLocs, [param.latitude, latLimit, param.longitude, lngLimit, conf.HEATMAPLIMIT], function (err, rows) {
                 if(err) {
                     return console.error('SQL Execution Error:' + err.message);
                 }
@@ -219,12 +218,8 @@ module.exports = {
                 }
 
                 if (event === 'heatmap') {
-                    pre_query = new Date().getTime();
 
-                    connection.query(query.getHeatmapEvents, [locList, locList, conf.HEATMAPLIMIT], function (err, rows) {
-                        post_query = new Date().getTime();
-                        duration = (post_query - pre_query) / 1000;
-                        console.log("getHeatmapEvents time is:" + duration);
+                    connection.query(query.getHeatmapEvents, [locList, year, month, locList, year, month, conf.HEATMAPLIMIT], function (err, rows) {
                         if(err) {
                             return console.error('SQL Execution Error:' + err.message);
                         }
@@ -242,8 +237,8 @@ module.exports = {
                     });
                 }
 
-                else if(event == 'type') {
-                    connection.query(query.getEventNumByType, [locList, locList, conf.HEATMAPLIMIT], function (err, rows) {
+                else if(event === 'type') {
+                    connection.query(query.getEventNumByType, [locList, year, month, locList, year, month, conf.HEATMAPLIMIT], function (err, rows) {
                         if (err) {
                             return console.error('SQL Execution Error:' + err.message);
                         }
@@ -261,8 +256,8 @@ module.exports = {
                     });
                 }
 
-                else if (event == "detail") {
-                    connection.query(query.getNearbyEventsDetails, [locList, param.type, locList, param.type, conf.HEATMAPLIMIT], function (err, rows) {
+                else if (event === "showType") {
+                    connection.query(query.getNearbyEventsByType, [locList, type, year, month, locList, type, year, month, conf.HEATMAPLIMIT], function (err, rows) {
                         if (err) {
                             return console.error('SQL Execution Error:' + err.message);
                         }
