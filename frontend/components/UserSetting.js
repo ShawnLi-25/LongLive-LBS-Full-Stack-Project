@@ -1,8 +1,7 @@
 import React from 'react';
 import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
-import { Button, Header } from 'react-native-elements';
+import { Button, Header, Icon } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableOpacity, TouchableHighlight } from 'react-native';
-
 export default class UserSetting extends React.Component {
     constructor(props) {
         super(props);
@@ -13,7 +12,8 @@ export default class UserSetting extends React.Component {
     render() {
         return(
             <View>
-                <Header ></Header>
+                <Header>
+                    <Icon name='close' onPress={() => { this.props.navigation.goBack(); }}></Icon></Header>
                 <TouchableOpacity style={styles.userInfoUpdaeButtonStyle} >
                     <Text style={styles.textStyle}>Photo</Text>
                 </TouchableOpacity>

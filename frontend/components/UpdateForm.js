@@ -1,107 +1,76 @@
 import React, { Component } from 'react';
-import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard, Picker, ActionSheet} from 'react-native';
+import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { Dropdown } from 'react-native-material-dropdown'
 import { Header, Icon } from 'react-native-elements'
-const crimeTypes = [{ value: 'HOMICIDE' }, { value: 'THEFT' }, { value: 'BATTERY' }, { value: 'CRIMINAL DAMAGE' }, { value: 'NARCOTICS' }, { value: 'ASSULT' }, { value: 'ARSON' }, { value: 'BURGLARY' }]
 import SERVER from '../config';
-import Modal from 'react-native-modal';
-
+const crimeTypes = [{ value: 'HOMICIDE' }, { value: 'THEFT' }, { value: 'BATTERY' }, { value: 'CRIMINAL DAMAGE' }, { value: 'NARCOTICS' }, { value: 'ASSULT' }, { value: 'ARSON' }, { value: 'BURGLARY' }]
 export default class ReportForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            latitude: '',
-            longitude: '',
-            crimeDescription: '',
-            reportedLocation: '',
-            locationDescription: '',
-            block: '',
-            date: '',
+            reportId: 0,
+            crimeDescription: ' ',
             primaryType: 'HOMICIDE',
             navigation: this.props.navigation,
         }
     }
 
-    updateprimaryType = (selectedType) => {
-        this.setState({ primaryType: selectedType})
-    }
-
     submit = () => {
         fetch(SERVER.REPORT, {
-            method: 'POST',
+            method: 'PUT',
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                time: '00:00:00',
-                latitude: 12345,
-                longitude: 12345,
-                email: 'abc@text.com',
+                reportID: this.state.reportId,
                 type: this.state.primaryType,
+                description: this.state.description,
             }),
         }).then(response => {
             if (response.status == 200) {
-                alert("success");
-                
+                alert("Success");
             } else {
-                alert(response.status);
+                alert("Failed: " + response.status);
             }
-            return response.json();
-        }).then((data) => {
-            console.log(data.reportID);
-        }) 
+        }).then(() => { this.props.navigation.goBack(); })
     }
 
     render() {
-
-        return(
-            <View style={styles.container}>
+        return (
+            <View>
                 <Header placement='left'>
                     <Icon name='close' onPress={() => { this.props.navigation.goBack(); }}></Icon>
-                    <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#002f6c' }}>Report a Crime</Text>
+                    <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#002f6c' }}>Update a Reported Crime</Text>
                 </Header>
-                <Dropdown 
+                <Dropdown
                     label='Crime Type'
                     data={crimeTypes}
-                    containerStyle={styles.dropdown}
-                    onChangeText={(type) => this.setState({ primaryType: type })}
-                />
+                    onChangeText={(type) => this.setState({ primaryType: type})}
+                    containerStyle={styles.dropdown}/>
                 <TextInput style={styles.inputBox}
-                    onChangeText={(crimeDescription) => this.setState({ crimeDescription })}
+                    onChangeText={(reportId) => this.setState({ reportId: reportId })}
                     underlineColorAndroid='rgba(0,0,0,0)'
-                    placeholder="Crime Description"
+                    placeholder="Report Id"
                     placeholderTextColor="#002f6c"
-                    selectionColor="#fff"
-                    keyboardType="email-address"
-                    onSubmitEditing={() => this.password.focus()} />
+                    ref={(input) => this.password = input}/>
                 <TextInput style={styles.inputBox}
-                    onChangeText={(reportedLocation) => this.setState({ reportedLocation })}
+                    onChangeText={(crimeDescription) => this.setState({ crimeDescription: crimeDescription })}
                     underlineColorAndroid='rgba(0,0,0,0)'
-                    placeholder="Reported Location"
+                    placeholder="Description"
                     placeholderTextColor="#002f6c"
-                    ref={(input) => this.password = input}
-                />
-                <TextInput style={styles.inputBox}
-                    onChangeText={(block) => this.setState({ block })}
-                    underlineColorAndroid='rgba(0,0,0,0)'
-                    placeholder="Block"
-                    placeholderTextColor="#002f6c"
-                    ref={(input) => this.password = input}
-                /> 
+                    ref={(input) => this.password = input}/>
                 <TouchableOpacity style={styles.button}>
                     <Button
-                        title="Submit"
+                        title="Update"
                         color='white'
                         raised
-                        onPress={this.submit}
-                    />
+                        onPress={this.submit}/>
                 </TouchableOpacity>
             </View>
         );
     }
 }
-
 
 const styles = StyleSheet.create({
 
@@ -119,12 +88,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#002f6c',
         marginVertical: 10,
-        
+
         textAlign: 'justify',
     },
     button: {
         width: '100%',
-        marginTop: 200,
+        marginTop: 400,
         backgroundColor: '#4f83cc',
         borderRadius: 24,
         marginVertical: 10,
@@ -146,5 +115,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#002f6c',
         marginVertical: 10,
-    }, 
+    },
 });
