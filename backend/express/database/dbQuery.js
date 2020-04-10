@@ -12,6 +12,15 @@ var query = {
         'INSERT INTO locations(Location, Latitude, Longitude, Block, Beat, District, Ward, CommunityArea) ' +
         'VALUES (?, ?, ?, ?, ?, ?, ?, ?)' +
         'ON DUPLICATE KEY UPDATE Block = VALUES(Block), Beat = VALUES(Beat), District = VALUES(District), Ward = VALUES(Ward), CommunityArea = VALUES(CommunityArea)',
+    updateUserRecord:
+        'UPDATE userRecords SET Type = ?, Description = ? ' +
+        'WHERE ReportID = ?',
+    deleteUserRecord:
+        'DELETE FROM userRecords ' +
+        'WHERE ReportID = ?',
+    getUserRecord:
+        'SELECT * FROM userRecords ' +
+        'WHERE ReportID = ?',
     getNearbyLocs:
         'SELECT locations.Location, locations.Latitude, locations.Longitude ' +
         'FROM locations ' +
@@ -63,7 +72,7 @@ var query = {
         'LIMIT ?' +
         ') t ' +
         'GROUP BY Type',
-    joinQuery:
+    getSrcDetail:
         'SELECT E.Time, E.Type, E.Description ' +
         'FROM events E NATURAL JOIN locations L ' +
         'WHERE L.Location IN (' +
@@ -83,26 +92,26 @@ var query = {
             id int(5) AUTO_INCREMENT PRIMARY KEY,
             username varchar(20),
             email varchar(50) not null,
-            password varchar(50) not null,
+            password varchar(100) not null,
             mobile int(11)
         ) AUTO_INCREMENT = 2;`,
     createUserRecord:
-            `create table if not exists userRecords (
-                ReportID int unsigned AUTO_INCREMENT PRIMARY KEY,
-                email varchar(50),
-                Time varchar(255) not null,
-                Location varchar(255) not null,
-                Type varchar(255) not null,
-                Description varchar(255),
-                FOREIGN KEY (Time) REFERENCES times(Time) ON DELETE CASCADE ON UPDATE CASCADE,
-                FOREIGN KEY (Location) REFERENCES locations(Location) ON DELETE CASCADE ON UPDATE CASCADE
-            )`,
+        `create table if not exists userRecords (
+            ReportID int unsigned AUTO_INCREMENT PRIMARY KEY,
+            email varchar(50),
+            Time varchar(64) not null,
+            Location varchar(64) not null,
+            Type varchar(64) not null,
+            Description varchar(255),
+            FOREIGN KEY (Time) REFERENCES times(Time) ON DELETE CASCADE ON UPDATE CASCADE,
+            FOREIGN KEY (Location) REFERENCES locations(Location) ON DELETE CASCADE ON UPDATE CASCADE
+        )`,
     createEvent:
         `create table if not exists events (
             EventID int unsigned AUTO_INCREMENT PRIMARY KEY,
-            Time varchar(255) not null,
-            Location varchar(255) not null,
-            Type varchar(255) not null,
+            Time varchar(64) not null,
+            Location varchar(64) not null,
+            Type varchar(64) not null,
             Description varchar(255),
             Arrest enum('TRUE', 'FALSE'),
             Source enum('Official', 'Report'),
@@ -111,7 +120,7 @@ var query = {
             )`,
     createTime:
         `create table if not exists times (
-            Time varchar(255) PRIMARY KEY,
+            Time varchar(64) PRIMARY KEY,
             Year int unsigned not null,
             Month int unsigned not null,
             Date int unsigned not null,            
@@ -120,8 +129,8 @@ var query = {
             )`,
     createLoc:
         `create table if not exists locations (
-            Location varchar(255) PRIMARY KEY,
-            Block varchar(255),
+            Location varchar(64) PRIMARY KEY,
+            Block varchar(64),
             Beat int unsigned,
             District int unsigned,
             Ward int unsigned,
@@ -131,8 +140,8 @@ var query = {
             )`,
     createMap:
         `create table if not exists map (
-            Location varchar(255),
-            Block varchar(255) not null,
+            Location varchar(64),
+            Block varchar(64) not null,
             LocationDescription varchar(255),
             PRIMARY KEY (Location, LocationDescription)  
             )`,

@@ -18,7 +18,16 @@ router.get('/', function(req, res, next) {
 
 /* Insert Record to Database */
 router.post('/report', function(req, res, next) {
-  accessDB.report(req, res, next);
+  console.log(req.body);
+  accessDB.reportUserRecord(req, res, next);
+});
+
+router.put('/report', function(req, res, next) {
+  accessDB.updateUserRecord(req, res, next);
+});
+
+router.delete('/report/:id', function(req, res, next) {
+  accessDB.deleteUserRecord(req, res, next);
 });
 
 /* Get Nearby locations for Heatmap */
@@ -57,19 +66,18 @@ router.get('/getNearbyEvents/src', function(req, res, next) {
 });
 
 /* Create Database */
-router.put('/createDB', function(req, res, next) {
+router.post('/createDB', function(req, res, next) {
   accessDB.create(req, res, next);
 });
 
 /* Load SrcFile to Database */
-router.put('/loadDB', function(req, res, next) {
+router.post('/loadDB', function(req, res, next) {
   accessDB.load(req, res, next);
 });
 
-
 /* Forbidden */
 router.get('/report', function(req, res, next) {
-  accessDB.report(req, res, next);
+  accessDB.reportUserRecord(req, res, next);
 });
 
 router.post('/getNearbyLocs', function(req, res, next) {
@@ -77,7 +85,7 @@ router.post('/getNearbyLocs', function(req, res, next) {
 });
 
 router.post('/getNearbyEvents', function(req, res, next) {
-  accessDB.getHeatmapEvents(req, res, next);
+  accessDB.getNearbyEvents(req, res, next, "");
 });
 
 module.exports = app;
