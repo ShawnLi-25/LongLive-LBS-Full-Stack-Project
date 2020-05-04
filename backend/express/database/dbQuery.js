@@ -1,4 +1,64 @@
 var query = {
+    /******  MongoDB  ******/
+
+    insertOne: function(collection, params, callback) {
+        collection.insertOne(
+            {_id: params.reportId, email: params.email, latitude: params.latitude, longitude: params.longitude,
+                time: params.time, type: params.type, description: params.description, img: params.img},
+            (err, result) => {
+                if(err) {
+                    console.log("MongoDB InsertOne Error" + err.message);
+                }
+                callback(result.ops[0]);
+            });
+    },
+
+    findAll: function(collection, callback) {
+        collection.find().toArray(function (err, events) {
+            // console.log(events);
+            callback(events);
+        });
+    },
+
+    // Find most frequent crime type in a ward now
+    wardPredict: function(collection, callback) {
+        collection.mapReduce(
+            function () {
+                emit(this.ward, this.crime_type);
+            },
+            function (ward, types) {
+                var res = [];
+                var typeCnt = {};
+
+                for (let i = 0; i < types.length; ++i) {
+                    let type = types[i];
+                    if(type in typeCnt) {
+                        ++typeCnt[type];
+                    } else {
+                        typeCnt[type] = 1;
+                    }
+                }
+
+                var maxVal = 0;
+                for (let [key, value] of Object.entries(typeCnt)) {
+                    if (value > maxVal) {
+                        res = key;
+                        maxVal = value;
+                    }
+                }
+                return res;
+            },
+            {out: {inline: 1}},
+            function (err, result) {
+                if (err) {
+                    return console.error('Mongo MapReduce Error:' + err.message);
+                }
+                callback(result);
+            }
+        );
+    },
+
+    /******  MySQL  ******/
     insertUserRecord:
         'INSERT INTO userRecords(Time, Location, Type, Description, email) ' +
         'VALUES (?, ?, ?, ?, ?)',

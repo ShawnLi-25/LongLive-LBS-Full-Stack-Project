@@ -26,7 +26,7 @@ module.exports = {
 
     getLocKey: (lat, lng) => {
         let loc = "(" + lng + ", " + lat + ")";
-        console.log(loc);
+        // console.log(loc);
         return loc;
     }
 };

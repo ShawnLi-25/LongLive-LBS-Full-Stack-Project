@@ -3,6 +3,7 @@ var $conf = require('../config/mysqlConn');
 var query = require('./dbQuery');
 var conf = require('../config/config');
 var helper = require('../helper');
+const mongo = require('./mongo');
 
 const pool = mysql.createPool({
     connectionLimit: 10,
@@ -35,6 +36,7 @@ module.exports = {
             }
 
             const bodyContent = req.body;
+            console.log(bodyContent);
             if (bodyContent == null || bodyContent.time == null || bodyContent.latitude == null || bodyContent.longitude == null || bodyContent.type == null) {
                 result = {
                     code: 400,
@@ -47,8 +49,8 @@ module.exports = {
             let timeParams = helper.getTimeFields();
             let locKey = helper.getLocKey(bodyContent.latitude, bodyContent.longitude);
 
-            const insertTime = () => {
-                return new Promise((resolve, reject) => {
+            var insertTime =
+                new Promise((resolve, reject) => {
                     connection.query(query.insertTime, timeParams, function (err, timeRes) {
                         if(err) {
                             reject(err);
@@ -59,15 +61,13 @@ module.exports = {
                             resolve(timeRes);
                         }
                     })
-                })
-            };
+                });
 
-            const insertLoc = () => {
+            var insertLoc = insertTime.then(function (timeRes) {
                 return new Promise((resolve, reject) => {
                     connection.query(query.insertLoc,
                         [locKey, bodyContent.latitude, bodyContent.longitude, bodyContent.block,
                             bodyContent.beat, bodyContent.district, bodyContent.ward, bodyContent.communityArea], function(err, locRes) {
-
                         if(err) {
                             reject(err);
                             return console.error('SQL Execution Error:' + err.message);
@@ -77,41 +77,41 @@ module.exports = {
                             resolve(locRes);
                         }
                     })
-                })
-            };
+                });
+            });
 
-            const insertEvent = () => {
+            var insertEvent = insertLoc.then(function (locRes) {
                 return new Promise((resolve, reject) => {
                     connection.query(query.insertUserRecord,
                         [timeParams[0], locKey, bodyContent.type, bodyContent.description, bodyContent.email], function (err, eventRes) {
-
-                        if(err) {
+                        if (err) {
                             reject(err);
                             console.error('SQL Execution Error:' + err.message);
                         }
-                        if(eventRes) {
-                            console.log("Report Done!");
+                        if (eventRes) {
+                            console.log("Insert into Events Done!");
                             result = {
                                 code: 200,
-                                msg:'Report Succeed',
+                                msg: 'MySQL Insert Succeed',
                                 reportID: eventRes.insertId
                             };
-                            resolve(eventRes);
                         }
                         /* send back to client */
-                        res.send(result);
+                        // res.send(result);
                         connection.release();
+                        resolve(eventRes);
                     })
-                })
-            };
-
-            insertTime()
-            .then(insertLoc())
-            .then(insertEvent())
-            .catch((err) => {
-                connection.close();
-                return console.error('SQL Execution Error:' + err.message);
+                });
             });
+
+            // MongoDB insert call --- Get insertId from insertEvent as reference
+            return Promise.all([insertTime, insertLoc, insertEvent]).then(function([timeRes, locRes, eventRes]) {
+                mongo.report(req, res, eventRes.insertId);
+            })
+            .catch((err) => {
+                return console.error('reportUserRecord Promise Chain Execution Error:' + err.message);
+            });
+
         });
     },
 
