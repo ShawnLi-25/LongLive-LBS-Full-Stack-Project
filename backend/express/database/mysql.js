@@ -36,7 +36,6 @@ module.exports = {
             }
 
             const bodyContent = req.body;
-            console.log(bodyContent);
             if (bodyContent == null || bodyContent.time == null || bodyContent.latitude == null || bodyContent.longitude == null || bodyContent.type == null) {
                 result = {
                     code: 400,
@@ -278,7 +277,7 @@ module.exports = {
     },
 
     // Get nearby events based on location & time
-    getNearbyEvents: function (req, res, next, event) {
+    getNearbyEvents: function (req, res, event) {
         pool.getConnection(function (err, connection) {
             if (err) {
                 return console.error('Connection Error:' + err.message);
@@ -307,10 +306,10 @@ module.exports = {
 
             // Generate parameters for query
             const latLimit = param.latDelta / 2, lngLimit = param.lngDelta / 2;
-            // Todo: no hardcode
-            const year = param.year != null ? param.year : new Date().getFullYear();
-            const month = param.month != null ? param.month : new Date().getMonth();
-            const type = param.type != null ? param.type.toUpperCase() : "HOMICIDE";
+
+            const year = (param.year != null && param.year !== 'undefined') ? param.year : new Date().getFullYear();
+            const month = (param.month != null && param.month !== 'undefined') ? param.month : 3;
+            const type = (param.type != null && param.type !== 'undefined') ? param.type.toUpperCase() : "HOMICIDE";
 
             connection.query(query.getNearbyLocs, [param.latitude, latLimit, param.longitude, lngLimit, conf.HEATMAPLIMIT], function (err, rows) {
                 if(err) {
@@ -327,50 +326,50 @@ module.exports = {
                     connection.release();
                     return res.send(JSON.stringify(objs));
                 }
-                // Get nearby events location for heatmap
-                // endpoint: /getNearbyEvents/heatmap?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&year=xxx&month=xxx
-                if (event === 'heatmap') {
 
+                if (event === 'heatmap') {
+                    // Get nearby events location for heatmap
+                    // endpoint: /getNearbyEvents/heatmap?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&year=xxx&month=xxx
                     connection.query(query.getHeatmapEvents, [locList, year, month, locList, year, month, conf.HEATMAPLIMIT], function (err, rows) {
                         if(err) {
                             return console.error('SQL Execution Error:' + err.message);
                         }
 
-                        var objs = [];
+                        var points = [];
 
                         if(rows) {
                             // console.log(rows);
                             for(let i = 0; i < rows.length; i++) {
-                                objs.push(rows[i]);
+                                points.push(rows[i]);
                             }
                         }
-                        res.send(JSON.stringify(objs));
+                        res.send(JSON.stringify(points));
                         connection.release();
                     });
-                }
-                // Get nearby # of events group by type
-                // endpoint: /getNearbyEvents/type?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&type=xxx&year=xxx&month=xxx
-                else if (event === 'type') {
+
+                } else if (event === 'type') {
+                    // Get nearby # of events group by type
+                    // endpoint: /getNearbyEvents/type?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&type=xxx&year=xxx&month=xxx
                     connection.query(query.getEventNumByType, [locList, year, month, locList, year, month, conf.HEATMAPLIMIT], function (err, rows) {
                         if (err) {
                             return console.error('SQL Execution Error:' + err.message);
                         }
 
-                        var objs = [];
+                        var typeCnts = [];
 
                         if (rows) {
                             console.log(rows);
                             for (let i = 0; i < rows.length; i++) {
-                                objs.push(rows[i]);
+                                typeCnts.push(rows[i]);
                             }
                         }
-                        res.send(JSON.stringify(objs));
+                        res.send(JSON.stringify(typeCnts));
                         connection.release();
                     });
-                }
-                // Get nearby events location of specific type
-                // endpoint: /getNearbyEvents/type?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&type=xxx&year=xxx&month=xxx
-                else if (event === "showType") {
+
+                } else if (event === "showType") {
+                    // Get nearby events location of specific type
+                    // endpoint: /getNearbyEvents/type?latitude=xxx&longitude=xxx&latDelta=xxx&lngDelta=xxx&type=xxx&year=xxx&month=xxx
                     connection.query(query.getNearbyEventsByType, [locList, type, year, month, locList, type, year, month, conf.HEATMAPLIMIT], function (err, rows) {
                         if (err) {
                             return console.error('SQL Execution Error:' + err.message);
@@ -379,7 +378,7 @@ module.exports = {
                         var objs = [];
 
                         if (rows) {
-                            console.log(rows);
+                            // console.log(rows);
                             for (let i = 0; i < rows.length; i++) {
                                 objs.push(rows[i]);
                             }
@@ -387,18 +386,105 @@ module.exports = {
                         res.send(JSON.stringify(objs));
                         connection.release();
                     });
-                }
-                //Unsupported endpoint check
-                else {
+
+                } else if (event === "beat") {
+                    connection.query(query.getHeatmapByBeat, [locList, conf.HEATMAPLIMIT], function (err, rows) {
+                        if (err) {
+                            return console.error('SQL Execution Error:' + err.message);
+                        }
+
+                        var objs = [];
+
+                        if (rows) {
+                            // console.log(rows);
+                            for (let i = 0; i < rows.length; i++) {
+                                objs.push(rows[i]);
+                            }
+                        }
+                        res.send(JSON.stringify(objs));
+                        connection.release();
+                    });
+
+                } else {
+                    //Unsupported endpoint check
                     result = {
                         code: 400,
-                        msg: 'Bad Request! Should send GET!'
+                        msg: 'Bad Request! Unsupported endpoint!'
                     };
                     return res.status(400).json(result);
                 }
-
             });
+        });
+    },
 
+    // Get prediction for most-likely crime event by K-Means
+    // endpoint: /predict?latitude=xxx&longitude=xxx&month=xxx&date=xxx&hour=xxx&minute=xxx
+    crimePredict: function(req, res) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return console.error('Connection Error:' + err.message);
+            }
+
+            let result;
+            if(req.method == "POST") {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Should send GET!'
+                };
+                return res.status(400).json(result);
+            }
+
+            const param = req.query;
+            if(param.longitude == null || param.latitude == null || param.longitude === 'undefined' || param.latitude === 'undefined') {
+                result = {
+                    code: 400,
+                    msg: 'Bad Request! Missing parameters or undefined'
+                };
+                return res.status(400).json(result);
+            }
+
+            //Todo: Add field check
+            const month = (param.month != null && param.month !== 'undefined') ? param.month : 3;
+            const hour = (param.hour != null && param.hour !== 'undefined') ? param.hour : 14;
+
+            // Generate parameters for query
+            connection.query(query.getNearbyLocs, [param.latitude, conf.PREDICT_RANGE, param.longitude, conf.PREDICT_RANGE, conf.HEATMAPLIMIT], function (err, rows) {
+                if(err) {
+                    return console.error('SQL Execution Error:' + err.message);
+                }
+
+                // Deal with location miss data
+                let locList = rows.filter(function(row) {
+                    return row.Location != null && row.Location !== "";
+                }).map(i => i.Location);
+
+                if (locList === 'undefined' || locList.length === 0) {
+                    const objs = [];
+                    connection.release();
+                    return res.send(JSON.stringify(objs));
+                };
+
+                connection.query(query.getPredictionDataPoints, [locList, conf.PREDICT_LIMIT], function (err, rows) {
+                    if (err) {
+                        return console.error('SQL Execution Error:' + err.message);
+                    }
+
+                    var dataPoints = [];
+                    var typeList = [];
+
+                    if (rows) {
+                        for (let i = 0; i < rows.length; i++) {
+                            // dataPoints.push({ latitude: rows[i].latitude, longitude: rows[i].longitude, month: rows[i].month, hour: rows[i].hour });
+                            dataPoints.push(rows[i]);
+                        }
+                    }
+
+                    const myData = [param.latitude, param.longitude, month, hour];
+                    const clusterIdx = helper.kMeansPrediction(myData, dataPoints);
+                    res.send(JSON.stringify(clusterIdx));
+                    connection.release();
+                });
+            });
         });
     },
 
@@ -460,9 +546,7 @@ module.exports = {
                 };
                 return res.status(400).json(result);
             }
-
             const param = req.query;
-
         });
     },
 

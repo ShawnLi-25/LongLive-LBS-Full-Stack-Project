@@ -89,7 +89,6 @@ router.post('/', function(req, res, next) {
 
         if(user) {
             console.log("Login successfully");
-            // Todo: Route to Map
             return res.json({
                 code:'200',
                 msg: 'Login Successfully'
