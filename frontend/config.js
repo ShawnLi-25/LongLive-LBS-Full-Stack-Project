@@ -31,5 +31,5 @@ exports.buttonNames = buttonNames;
 let iconNames = ['knife', 'drupal', 'kabaddi', 'home-alert', 'tea', 'karate', 'fire', 'garage-alert']
 exports.iconNames = iconNames;
 
-let attachments = [];
+let attachments = null;
 exports.attachments = attachments;
