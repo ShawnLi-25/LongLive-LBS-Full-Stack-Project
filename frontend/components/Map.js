@@ -1,12 +1,11 @@
 import React from 'react';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import { Button, SearchBar} from 'react-native-elements';
-import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SERVER from '../config';
 import TypeIcon from './TypeIcon';
-import clusterfck_root from '../kmeans/clusterfck';
-let clusterfck = clusterfck_root.clusterfck;
+import { Root, Popup } from 'popup-ui'
 
 let typeCount = SERVER.typeCount;
 let buttonNames = SERVER.buttonNames;
@@ -15,7 +14,6 @@ let attachments = SERVER.attachments;
 let buttonPressedStatus = buttonStatusInit(buttonNames);
 let currentPressedButtons = [];
 let anyButtonPressed = false;
-
 
 function buttonStatusInit (names) {
     let buttonPressedStatusList = [];
@@ -114,7 +112,7 @@ export default class MapPage extends React.Component {
             }
             this.setState({ crimeTypeCount: fetchedCrimeTypeCount })
         });
-
+        console.log("zoom", zoom);
         let requestPointsURL = "";
         if (!anyButtonPressed) {
             requestPointsURL = `${SERVER.ROOT}getNearbyEvents/heatmap?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}`;
@@ -122,7 +120,6 @@ export default class MapPage extends React.Component {
                 .then((response) => { return response.json(); })
                 .then((locationData) => {
                     let fetchPointList = [];
-                    
                     for (var i = 0; i < locationData.length; i++) {
                         let point = {
                             latitude: (Number(locationData[i].latitude)),
@@ -145,14 +142,8 @@ export default class MapPage extends React.Component {
                                 latitude: (Number(locationData[i].latitude)),
                                 longitude: Number(locationData[i].longitude),
                             };
-                            // hostory_vectors[i] = [Number(locationData[i].latitude), Number(locationData[i].longitude)];
                             fetchPointList.push(point);
                         }
-                        // console.log("hey");
-                        // const kmeans = require('node-kmeans');
-                        // kmeans.clusterize(hostory_vectors, { k: 5 }, (_, res) => {
-                        //     console.log('%o', res);
-                        // });
                         this.setState({ pointList: fetchPointList });
                     })
             })
@@ -170,53 +161,36 @@ export default class MapPage extends React.Component {
         })
     }
 
-    showSearchResult = () => {
-        this.state.navigation.navigate("List");
-    }
     searchAttachment = () => {
-        let searchInfo = this.state.searchInfo;
-        console.log(searchInfo);
         let UplodedInfo = new FormData();
-        UplodedInfo.append('search', searchInfo);
+        UplodedInfo.append('search', 'images');
         fetch(SERVER.TEST, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'multipart/form-data',
             },
-        }).then((response) => { return response.json();
-        }).then((images) => {
-            console.log(images[0]);
-            for (var i = 0; i < images.length; i++) {
-                if (images[i]['img'] != null) {
-                    console.log(i);
-                    attachments.push(images[i]['img']);
-                }
-            }
-            this.showSearchResult();
+        }).then((response) => { 
+            // fs.downloadAsync(response, "attachment.jpeg", fs.EncodingType.Base64);
+            // return response.json();
+            // console.log("download finished");
         })
     }
-    
+
     getPrediction = () => {
-        const predictionPointList = this.state.pointList;
-        var len = predictionPointList.length;
-        let predictionData = new Array(len);
-        for (var i = 0; i < len; i++) {
-            predictionData[i] = [];
-        }
-        for (var i = 0; i < len; i++) {
-            for (var j = 0; j < 2; j++) {
-                predictionData[i][j] = (j == 1) ? Number(predictionPointList[i].latitude) : Number(predictionPointList[i].longitude);
-            }
-        }
-        var kmeans = new clusterfck_root.Kmeans();
-        var clusters = kmeans.cluster(predictionData, 2);
-        var clusterIndex = kmeans.classify([41.88825, -87.6324]);
-        console.log(clusterIndex);
+        let type = "HOMICIDE";
+        Popup.show({
+            type: 'Warning',
+            title: 'Prediction Complete',
+            button: true,
+            textBody: `The predicted crime type is ${type}`,
+            buttontext: 'Ok',
+            callback: () => Popup.hide()
+        })
     }
     render() {
         let crimeTypeCount = this.state.crimeTypeCount;
-        const search = this.state.searchInfo;
+        let radius = 100 / this.state.zoom;
         return (
             <View style={{ flex: 1 }}>
                 <MapView
@@ -236,7 +210,7 @@ export default class MapPage extends React.Component {
                         <Circle
                             key={index}
                             center={circle}
-                            radius={30}
+                            radius={radius}
                             fillColor='#FD7659'
                             strokeColor='transparent'
                             {...circle}/>
@@ -249,15 +223,22 @@ export default class MapPage extends React.Component {
                         icon={<Icon name='face-profile' size={60} />}
                     />
                 </View>
-                <View style={styles.searchBarContainer}>
-                    <Icon style={styles.searchIcon} name="image-search" size={20} onPress={this.searchAttachment}></Icon>
-                    <TextInput 
-                        style={styles.input}
-                        onChangeText={(search) => this.setState({ searchInfo: search })}
-                        placeholder="Type here ..."
-                        placeholderTextColor="#002f6c"
+                <Root style={styles.funtionalButtonContainer}>
+                <View >
+                    
+                    <Button
+                        onPress={() => { this.getPrediction() }}
+                        type='clear'
+                        icon={<Icon name='lightbulb' size={60} />}
                     />
+                    <Button
+                        onPress={() => { this.searchAttachment() }}
+                        type='clear'
+                        icon={<Icon name='image-search' size={60} />}
+                    />
+                    
                 </View>
+                </Root>
                 <View style={styles.buttonContainer}>
                     {buttonNames.map((name, index) => (
                         <ButtonView name={name} crimeTypeCount={crimeTypeCount} iconName={iconNames[index]} pressStatus={buttonPressedStatus[name]}></ButtonView>
@@ -297,31 +278,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '15%',
     },
-    searchBarContainer: {
+    funtionalButtonContainer: {
+        flexDirection: 'column',
         position: 'absolute',
         flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'center',
+        top: '3%',
+        left: '0%',
         alignItems: 'center',
-        top: '5%',
-        width: '100%',
-        borderWidth: 0.5,
-    },
-    input: {
-        flex: 1,
-        paddingTop: 10,
-        paddingRight: 10,
-        paddingBottom: 10,
-        paddingLeft: '20%',
-        // backgroundColor: '#fff',
-        color: '#424242',
-        // borderColor: 'black',
-    },
-    searchIcon: {
-        // marginRight: 0,
-        // marginLeft: '80%',
-        
-        // justifyContent:'right',
-        // alignItems: 'right',
     },
 });
