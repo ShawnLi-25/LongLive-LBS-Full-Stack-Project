@@ -1,14 +1,14 @@
 import React from 'react';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
-import { Button } from 'react-native-elements';
+import { Button, SearchBar} from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SERVER from '../config';
 import TypeIcon from './TypeIcon';
-
 let typeCount = SERVER.typeCount;
 let buttonNames = SERVER.buttonNames;
 let iconNames = SERVER.iconNames;
+let attachments = SERVER.attachments;
 let buttonPressedStatus = buttonStatusInit(buttonNames);
 let currentPressedButtons = [];
 let anyButtonPressed = false;
@@ -84,6 +84,7 @@ export default class MapPage extends React.Component {
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
             },
+            searchInfo: '',
             zoom: 1,
         } 
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
@@ -94,7 +95,10 @@ export default class MapPage extends React.Component {
         let zoom = Math.round(Math.log(360 / region.longitudeDelta) / Math.LN2);
         this.setState({zoom: zoom});
         const currentRegion = this.state.currentRegion;
-        let requestType = `${SERVER.ROOT}getNearbyEvents/type?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}`;
+        let newDate = new Date();
+        let year = newDate.getFullYear();
+        let month = newDate.getMonth() + 1;
+        let requestType = `${SERVER.ROOT}getNearbyEvents/type?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}`;
         fetch(requestType)
         .then((response) => { return response.json(); })
         .then((typeCountData) => {
@@ -106,9 +110,7 @@ export default class MapPage extends React.Component {
             }
             this.setState({ crimeTypeCount: fetchedCrimeTypeCount })
         });
-        let newDate = new Date();
-        let year = newDate.getFullYear();
-        let month = newDate.getMonth() + 1;
+
         let requestPointsURL = "";
         if (!anyButtonPressed) {
             requestPointsURL = `${SERVER.ROOT}getNearbyEvents/heatmap?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}`;
@@ -129,6 +131,7 @@ export default class MapPage extends React.Component {
             let fetchPointList = [];
             currentPressedButtons.map((button, index) => {
                 let type = button.name;
+                console.log(type);
                 requestPointsURL = `${SERVER.ROOT}getNearbyEvents/showType?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}&type=${type}`;
                 fetch(requestPointsURL)
                     .then((response) => { return response.json(); })
@@ -145,7 +148,7 @@ export default class MapPage extends React.Component {
             })
         }
     }
-    
+
     createMarkerOnPress = (event) => {
         this.setState({
             markers: [
@@ -157,8 +160,36 @@ export default class MapPage extends React.Component {
         })
     }
 
+    showSearchResult = () => {
+        this.state.navigation.navigate("List");
+    }
+    searchAttachment = () => {
+        let searchInfo = this.state.searchInfo;
+        console.log(searchInfo);
+        let UplodedInfo = new FormData();
+        UplodedInfo.append('search', searchInfo);
+        fetch(SERVER.TEST, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'multipart/form-data',
+            },
+        }).then((response) => { return response.json();
+        }).then((images) => {
+            console.log(images[0]);
+            for (var i = 0; i < images.length; i++) {
+                if (images[i]['img'] != null) {
+                    console.log(i);
+                    attachments.push(images[i]['img']);
+                }
+            }
+            this.showSearchResult();
+        })
+    }
+
     render() {
         let crimeTypeCount = this.state.crimeTypeCount;
+        const search = this.state.searchInfo;
         return (
             <View style={{ flex: 1 }}>
                 <MapView
@@ -189,6 +220,15 @@ export default class MapPage extends React.Component {
                         onPress={() => { this.props.navigation.openDrawer() }}
                         type='clear'
                         icon={<Icon name='face-profile' size={60} />}
+                    />
+                </View>
+                <View style={styles.searchBarContainer}>
+                    <Icon style={styles.searchIcon} name="image-search" size={20} onPress={this.searchAttachment}></Icon>
+                    <TextInput 
+                        style={styles.input}
+                        onChangeText={(search) => this.setState({ searchInfo: search })}
+                        placeholder="Type here ..."
+                        placeholderTextColor="#002f6c"
                     />
                 </View>
                 <View style={styles.buttonContainer}>
@@ -225,9 +265,36 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         position: 'absolute',
         flex: 1,
-        top: '5%',
+        top: '10%',
         right: '0%',
         alignItems: 'center',
         width: '15%',
+    },
+    searchBarContainer: {
+        position: 'absolute',
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        top: '5%',
+        width: '100%',
+        borderWidth: 0.5,
+    },
+    input: {
+        flex: 1,
+        paddingTop: 10,
+        paddingRight: 10,
+        paddingBottom: 10,
+        paddingLeft: '20%',
+        // backgroundColor: '#fff',
+        color: '#424242',
+        // borderColor: 'black',
+    },
+    searchIcon: {
+        // marginRight: 0,
+        // marginLeft: '80%',
+        
+        // justifyContent:'right',
+        // alignItems: 'right',
     },
 });
