@@ -1967,6 +1967,11 @@ clone@^1.0.2:
   resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
   integrity sha1-2jCcwmPfFZlMaIypAheco8fNfH4=
 
+clusterfck@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/clusterfck/-/clusterfck-1.0.0.tgz#6402bd84f272be171a1daafd1d0fca245561fdc4"
+  integrity sha512-jExaOjYY8Zqw3mzhRAY2PEXCi7dnGr9h9PZn1L3PLKZKpxj9ForoSOuEKuvFwS86J/9uc9TsbPtCVH8OkOJpTg==
+
 code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
@@ -4078,6 +4083,13 @@ node-int64@^0.4.0:
   resolved "https://registry.yarnpkg.com/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
   integrity sha1-h6kGXNs1XTGC2PlM4RGIuCXGijs=
 
+node-kmeans@^1.1.9:
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/node-kmeans/-/node-kmeans-1.1.9.tgz#ca445d46302f5e76d33f8dfefa895d61f7956ced"
+  integrity sha512-qZiuD4ab4cvsSWQSccWzLb4j1cHlm6wjGiWrbhCPZweVzpfcWBQ2CMqK4YBtJJ3OhK27NkZ1PKiLlZ52Z///cQ==
+  dependencies:
+    underscore "^1.9.1"
+
 node-modules-regexp@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/node-modules-regexp/-/node-modules-regexp-1.0.0.tgz#8d9dbe28964a4ac5712e9131642107c71e90ec40"
@@ -5750,6 +5762,11 @@ ultron@~1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/ultron/-/ultron-1.1.1.tgz#9fe1536a10a664a65266a1e3ccf85fd36302bc9c"
   integrity sha512-UIEXBNeYmKptWH6z8ZnqTeS8fV74zG0/eRU9VGkpzz+LIJNs8W/zM/L+7ctCkRrgbNnnR0xxw4bKOr0cW0N0Og==
+
+underscore@^1.9.1:
+  version "1.10.2"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.10.2.tgz#73d6aa3668f3188e4adb0f1943bd12cfd7efaaaf"
+  integrity sha512-N4P+Q/BuyuEKFJ43B9gYuOj4TQUHXX+j2FqguVOpjkssLUUrnJofCcBccJSCoeturDoZU6GorDTHSvUDlSQbTg==
 
 unicode-canonical-property-names-ecmascript@^1.0.4:
   version "1.0.4"

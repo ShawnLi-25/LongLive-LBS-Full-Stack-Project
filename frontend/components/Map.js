@@ -5,6 +5,9 @@ import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } fro
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SERVER from '../config';
 import TypeIcon from './TypeIcon';
+import clusterfck_root from '../kmeans/clusterfck';
+let clusterfck = clusterfck_root.clusterfck;
+
 let typeCount = SERVER.typeCount;
 let buttonNames = SERVER.buttonNames;
 let iconNames = SERVER.iconNames;
@@ -12,6 +15,7 @@ let attachments = SERVER.attachments;
 let buttonPressedStatus = buttonStatusInit(buttonNames);
 let currentPressedButtons = [];
 let anyButtonPressed = false;
+
 
 function buttonStatusInit (names) {
     let buttonPressedStatusList = [];
@@ -118,6 +122,7 @@ export default class MapPage extends React.Component {
                 .then((response) => { return response.json(); })
                 .then((locationData) => {
                     let fetchPointList = [];
+                    
                     for (var i = 0; i < locationData.length; i++) {
                         let point = {
                             latitude: (Number(locationData[i].latitude)),
@@ -131,7 +136,6 @@ export default class MapPage extends React.Component {
             let fetchPointList = [];
             currentPressedButtons.map((button, index) => {
                 let type = button.name;
-                console.log(type);
                 requestPointsURL = `${SERVER.ROOT}getNearbyEvents/showType?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}&type=${type}`;
                 fetch(requestPointsURL)
                     .then((response) => { return response.json(); })
@@ -141,8 +145,14 @@ export default class MapPage extends React.Component {
                                 latitude: (Number(locationData[i].latitude)),
                                 longitude: Number(locationData[i].longitude),
                             };
+                            // hostory_vectors[i] = [Number(locationData[i].latitude), Number(locationData[i].longitude)];
                             fetchPointList.push(point);
                         }
+                        // console.log("hey");
+                        // const kmeans = require('node-kmeans');
+                        // kmeans.clusterize(hostory_vectors, { k: 5 }, (_, res) => {
+                        //     console.log('%o', res);
+                        // });
                         this.setState({ pointList: fetchPointList });
                     })
             })
@@ -186,7 +196,24 @@ export default class MapPage extends React.Component {
             this.showSearchResult();
         })
     }
-
+    
+    getPrediction = () => {
+        const predictionPointList = this.state.pointList;
+        var len = predictionPointList.length;
+        let predictionData = new Array(len);
+        for (var i = 0; i < len; i++) {
+            predictionData[i] = [];
+        }
+        for (var i = 0; i < len; i++) {
+            for (var j = 0; j < 2; j++) {
+                predictionData[i][j] = (j == 1) ? Number(predictionPointList[i].latitude) : Number(predictionPointList[i].longitude);
+            }
+        }
+        var kmeans = new clusterfck_root.Kmeans();
+        var clusters = kmeans.cluster(predictionData, 2);
+        var clusterIndex = kmeans.classify([41.88825, -87.6324]);
+        console.log(clusterIndex);
+    }
     render() {
         let crimeTypeCount = this.state.crimeTypeCount;
         const search = this.state.searchInfo;
