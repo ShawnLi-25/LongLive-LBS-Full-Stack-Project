@@ -1,4 +1,123 @@
 var query = {
+    /******  MongoDB  ******/
+
+    // User Report
+    insertUserRecordMongo: function (collection, params, callback) {
+        collection.insertOne(
+            {
+                _id: params.reportId, email: params.email, latitude: params.latitude, longitude: params.longitude,
+                time: params.time, type: params.type, description: params.description
+            },
+
+            (err, result) => {
+                if (err) {
+                    console.log("MongoDB InsertOne Error" + err.message);
+                }
+                callback(result.ops[0]);
+            });
+    },
+
+    updateUserRecordMongo: function (collection, reportId, params, callback) {
+        collection.update(
+            { _id: reportId },
+            {
+                $set: {
+                    type: params.type,
+                    description: params.description
+                }
+            },
+
+            (err, result) => {
+                if (err) {
+                    console.log("MongoDB Update Error" + err.message);
+                }
+                callback(result);
+            });
+    },
+
+    insertImage: function (collection, content, callback) {
+        collection.insertOne(
+            {_id: content.reportId, img: content.img, imgPath: content.imgPath},
+
+            (err, result) => {
+                if (err) {
+                    console.log("MongoDB InsertOne Image Error" + err.message);
+                }
+                callback(result.ops[0]);
+            });
+    },
+
+    // Find most frequent crime type in a ward now (MapReduce flow here)
+    wardPredict: function (collection, callback) {
+        collection.mapReduce(
+            function () {
+                emit(this.ward, this.crime_type);
+            },
+            function (ward, types) {
+                var res = [];
+                var typeCnt = {};
+
+                for (let i = 0; i < types.length; ++i) {
+                    let type = types[i];
+                    if (type in typeCnt) {
+                        ++typeCnt[type];
+                    } else {
+                        typeCnt[type] = 1;
+                    }
+                }
+
+                var maxVal = 0;
+                for (let [key, value] of Object.entries(typeCnt)) {
+                    if (value > maxVal) {
+                        res = key;
+                        maxVal = value;
+                    }
+                }
+                return res;
+            },
+            {out: {inline: 1}},
+            function (err, result) {
+                if (err) {
+                    return console.error('Mongo MapReduce Error:' + err.message);
+                }
+                callback(result);
+            }
+        );
+    },
+
+    // General query
+    deleteOne: function (collection, deleteId, callback) {
+        collection.deleteOne(
+            {_id: deleteId},
+
+            (err, result) => {
+                // console.log(deleteid);
+                if (err) {
+                    console.log("MongoDB deleteOne Error" + err.message);
+                }
+                callback(result);
+            })
+    },
+
+    findAll: function (collection, callback) {
+        collection.find().toArray(function (err, items) {
+            callback(items);
+        });
+    },
+
+    findOne: function (collection, id, callback) {
+        collection.findOne(
+            {_id: id},
+
+            (err, item) => {
+                if (err) {
+                    console.log("MongoDB findOne Error" + err.message);
+                }
+                callback(item);
+            });
+    },
+
+    /******  MySQL  ******/
     insertUserRecord:
         'INSERT INTO userRecords(Time, Location, Type, Description, email) ' +
         'VALUES (?, ?, ?, ?, ?)',
@@ -26,8 +145,14 @@ var query = {
         'FROM locations ' +
         'WHERE ABS(? - locations.Latitude) < ? AND ABS(? - locations.Longitude) < ? ' +
         'LIMIT ?',
+    getPredictionDataPoints:
+        'SELECT DISTINCT L.Latitude AS latitude, L.Longitude AS longitude, T.Month As month, T.Hour AS hour, E.Type AS type ' +
+        'FROM locations L NATURAL JOIN events E ' +
+        'NATURAL JOIN times T ' +
+        'WHERE E.Location IN (?)' +
+        'LIMIT ?',
     getHeatmapEvents:
-        'SELECT L.Latitude AS latitude, L.Longitude AS longitude ' +
+        'SELECT DISTINCT L.Latitude AS latitude, L.Longitude AS longitude ' +
         'FROM locations L NATURAL JOIN events E ' +
         'NATURAL JOIN times T ' +
         'WHERE E.Location IN (?) AND T.Year = ? AND T.Month = ? ' +
@@ -37,11 +162,17 @@ var query = {
         'NATURAL JOIN times T2 ' +
         'WHERE U.Location IN (?) AND T2.Year = ? AND T2.Month = ? ' +
         'LIMIT ?',
+    getHeatmapByBeat:
+        'SELECT DISTINCT L.Beat, COUNT(*) AS Num, AVG(L.Latitude) AS Lat, AVG(L.Longitude) AS Lng ' +
+        'FROM locations L NATURAL JOIN events E ' +
+        'WHERE E.Location IN (?) ' +
+        'GROUP BY L.Beat ' +
+        'LIMIT ?',
     getNearbyEventsByType:
-        'SELECT L.Latitude AS latitude, L.Longitude AS longitude ' +
+        'SELECT DISTINCT L.Latitude AS latitude, L.Longitude AS longitude ' +
         'FROM locations L NATURAL JOIN events E ' +
         'NATURAL JOIN times T ' +
-        'WHERE E.Location IN (?) AND E.Type = ? AND T.Year = ? AND T.Month = ? '+
+        'WHERE E.Location IN (?) AND E.Type = ? AND T.Year = ? AND T.Month = ? ' +
         'UNION ' +
         'SELECT L2.Latitude, L2.Longitude ' +
         'FROM locations L2 NATURAL JOIN userRecords U ' +
@@ -51,7 +182,7 @@ var query = {
     getEventsDetails:
         'SELECT Time, Location, Type, Description ' +
         'FROM events ' +
-        'WHERE events.Location IN (?) AND events.Type = ? '+
+        'WHERE events.Location IN (?) AND events.Type = ? ' +
         'UNION ' +
         'SELECT Time, Location, Type, Description ' +
         'FROM userRecords ' +
@@ -86,7 +217,7 @@ var query = {
     login:
         'SELECT * FROM users WHERE email = ?',
     register:
-        'INSERT INTO users(id, email, password) VALUES (DEFAULT, ?, ?)',
+        'INSERT INTO users(id, email, password, username, mobile) VALUES (DEFAULT, ?, ?, ?, ?)',
     createUsers:
         `create table if not exists users (
             id int(5) AUTO_INCREMENT PRIMARY KEY,

@@ -23,6 +23,8 @@
 /backend/express/cookie.txt
 /backend/express/sessions
 /backend/express/config/mysqlConn.js
+/backend/express/debug.sh
+/backend/express/images/*
 /backend/.expo/*
 /backend/npm-debug.*
 /backend/*.jks

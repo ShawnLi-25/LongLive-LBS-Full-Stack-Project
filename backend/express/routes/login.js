@@ -61,7 +61,8 @@ passport.use('local-login', new LocalStrategy({
                 newUser.email = email;
                 newUser.password = hashedPassword;
 
-                connection.query(query.register, [email, hashedPassword], function (err, row) {
+                console.log(req.body);
+                connection.query(query.register, [email, hashedPassword, req.body.username, req.body.mobile], function (err, row) {
                     if(err)
                         return done(err);
                     newUser.id = row.insertId;
@@ -89,7 +90,6 @@ router.post('/', function(req, res, next) {
 
         if(user) {
             console.log("Login successfully");
-            // Todo: Route to Map
             return res.json({
                 code:'200',
                 msg: 'Login Successfully'
