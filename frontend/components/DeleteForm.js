@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard, Picker, ActionSheet } from 'react-native';
-import { Dropdown } from 'react-native-material-dropdown'
-import { Header, Icon } from 'react-native-elements'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Dimensions } from 'react-native';
+import { Button, Header, Icon } from 'react-native-elements'
 import SERVER from '../config';
 export default class DeleteForm extends Component {
     constructor(props) {
@@ -11,7 +10,7 @@ export default class DeleteForm extends Component {
             navigation: this.props.navigation,
         }
     }
-
+    
     submit = () => {
         let requestURL = SERVER.REPORT + '/' + this.state.reportId;
         fetch(requestURL, {
@@ -32,9 +31,13 @@ export default class DeleteForm extends Component {
     render() {
         return (
             <View>
-                <Header placement='left'>
-                    <Icon name='close' onPress={() => { this.props.navigation.goBack(); }}></Icon>
-                    <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#002f6c' }}>Delete a Reported Crime</Text>
+                <Header placement='center'
+                    containerStyle={{
+                        backgroundColor: '#f1f1f1',
+                        justifyContent: 'space-around',
+                    }}>
+                    <Icon name='close' size={25} onPress={() => { this.props.navigation.goBack(); }}></Icon>
+                    <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#002f6c' }}>Delete</Text>
                 </Header>
                 <TextInput style={styles.inputBox}
                     onChangeText={(reportId) => this.setState({ reportId: reportId })}
@@ -43,13 +46,17 @@ export default class DeleteForm extends Component {
                     placeholderTextColor="#002f6c"
                     ref={(input) => this.password = input} />
                 
-                <TouchableOpacity style={styles.button}>
-                    <Button
-                        title="Delete"
-                        color='white'
-                        raised
-                        onPress={this.submit} />
-                </TouchableOpacity>
+                <View style={{ paddingTop: Dimensions.get('window').height * 0.7 }}>
+                    <TouchableOpacity>
+                        <Button
+                            title="Delete"
+                            type='clear'
+                            raised
+                            onPress={this.submit}
+                            titleStyle={{ color: "#002f6c" }}
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
         );
     }
@@ -58,45 +65,19 @@ export default class DeleteForm extends Component {
 const styles = StyleSheet.create({
 
     container: {
-        // marginTop: 100,
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: '#f1f1f1',
+    },
+    infoContainer: {
+        flexDirection: 'column',
     },
     inputBox: {
         width: '100%',
         height: 50,
         backgroundColor: '#eeeeee',
-        // borderRadius: 25,
         paddingHorizontal: 16,
         fontSize: 16,
         color: '#002f6c',
         marginVertical: 10,
-
         textAlign: 'justify',
-    },
-    button: {
-        width: '100%',
-        marginTop: 500,
-        backgroundColor: '#4f83cc',
-        borderRadius: 24,
-        marginVertical: 10,
-        paddingVertical: 12,
-        color: '#FFB6C1',
-
-    },
-    buttonText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#ffffff',
-        textAlign: 'center',
-    },
-    dropdown: {
-        width: '100%',
-        height: 50,
-        backgroundColor: '#eeeeee',
-        paddingHorizontal: 16,
-        fontSize: 16,
-        color: '#002f6c',
-        marginVertical: 10,
     },
 });

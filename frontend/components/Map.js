@@ -1,17 +1,20 @@
 import React from 'react';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
-import { Button } from 'react-native-elements';
-import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput } from 'react-native';
+import { Button, SearchBar} from 'react-native-elements';
+import { StyleSheet, Text, View, Dimensions, TouchableHighlight, TextInput, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SERVER from '../config';
 import TypeIcon from './TypeIcon';
+import { Root, Popup } from 'popup-ui'
 
 let typeCount = SERVER.typeCount;
 let buttonNames = SERVER.buttonNames;
 let iconNames = SERVER.iconNames;
+let attachments = SERVER.attachments;
 let buttonPressedStatus = buttonStatusInit(buttonNames);
 let currentPressedButtons = [];
 let anyButtonPressed = false;
+
 
 function buttonStatusInit (names) {
     let buttonPressedStatusList = [];
@@ -84,6 +87,7 @@ export default class MapPage extends React.Component {
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
             },
+            searchInfo: '',
             zoom: 1,
         } 
         this.createMarkerOnPress = this.createMarkerOnPress.bind(this);
@@ -94,7 +98,10 @@ export default class MapPage extends React.Component {
         let zoom = Math.round(Math.log(360 / region.longitudeDelta) / Math.LN2);
         this.setState({zoom: zoom});
         const currentRegion = this.state.currentRegion;
-        let requestType = `${SERVER.ROOT}getNearbyEvents/type?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}`;
+        let newDate = new Date();
+        let year = newDate.getFullYear();
+        let month = newDate.getMonth() + 1;
+        let requestType = `${SERVER.ROOT}getNearbyEvents/type?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}`;
         fetch(requestType)
         .then((response) => { return response.json(); })
         .then((typeCountData) => {
@@ -106,9 +113,6 @@ export default class MapPage extends React.Component {
             }
             this.setState({ crimeTypeCount: fetchedCrimeTypeCount })
         });
-        let newDate = new Date();
-        let year = newDate.getFullYear();
-        let month = newDate.getMonth() + 1;
         let requestPointsURL = "";
         if (!anyButtonPressed) {
             requestPointsURL = `${SERVER.ROOT}getNearbyEvents/heatmap?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}`;
@@ -144,8 +148,9 @@ export default class MapPage extends React.Component {
                     })
             })
         }
-    }
     
+    }
+
     createMarkerOnPress = (event) => {
         this.setState({
             markers: [
@@ -157,8 +162,54 @@ export default class MapPage extends React.Component {
         })
     }
 
+    searchAttachment = () => {
+        console.log("search");
+        fetch(SERVER.IMAGE, {
+            method: 'GET',
+        }).then((response) => { 
+            return response.json();
+        }).then((list) => {
+            for (var i = 0; i < list.length; i++) {
+                attachments.push(list[i]);
+            }
+        }).then(() => {
+            // console.log(attachments);
+            this.state.navigation.navigate("List");
+        })
+    }
+
+    getPrediction = () => {
+
+        let newDate = new Date();
+        let month = newDate.getMonth() + 1;
+        let hour = newDate.getHours();
+
+        const currentRegion = this.state.currentRegion;
+        
+        let requestPredictionURL = `${SERVER.PREDICT}/?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&month=${month}&hour=${hour}`;
+
+        fetch(requestPredictionURL, { method: 'GET' })
+            .then((response) => { return response.json(); })
+            .then((predictedCrimeType) => {
+                console.log(predictedCrimeType.length);
+                let types = "\n";
+                for (var i = 0; i < predictedCrimeType.length; i++) {
+                    console.log(predictedCrimeType[i][0]);
+                    types = types.concat(predictedCrimeType[i][0] + "\n");
+                }
+                Popup.show({
+                    type: 'Warning',
+                    title: 'Prediction Complete',
+                    button: true,
+                    textBody: `The top ${predictedCrimeType.length} predicted crime types about to happen are ${types}`,
+                    buttontext: 'Ok',
+                    callback: () => Popup.hide()
+                })
+            })
+    }
     render() {
         let crimeTypeCount = this.state.crimeTypeCount;
+        let radius = 100 / this.state.zoom;
         return (
             <View style={{ flex: 1 }}>
                 <MapView
@@ -178,7 +229,7 @@ export default class MapPage extends React.Component {
                         <Circle
                             key={index}
                             center={circle}
-                            radius={30}
+                            radius={radius}
                             fillColor='#FD7659'
                             strokeColor='transparent'
                             {...circle}/>
@@ -191,6 +242,22 @@ export default class MapPage extends React.Component {
                         icon={<Icon name='face-profile' size={60} />}
                     />
                 </View>
+                <Root style={styles.funtionalButtonContainer}>
+                <View >
+                    
+                    <Button
+                        onPress={() => { this.getPrediction() }}
+                        type='clear'
+                        icon={<Icon name='lightbulb' size={60} />}
+                    />
+                    <Button
+                        onPress={() => { this.searchAttachment() }}
+                        type='clear'
+                        icon={<Icon name='image-search' size={60} />}
+                    />
+                    
+                </View>
+                </Root>
                 <View style={styles.buttonContainer}>
                     {buttonNames.map((name, index) => (
                         <ButtonView name={name} crimeTypeCount={crimeTypeCount} iconName={iconNames[index]} pressStatus={buttonPressedStatus[name]}></ButtonView>
@@ -225,9 +292,17 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         position: 'absolute',
         flex: 1,
-        top: '5%',
+        top: '10%',
         right: '0%',
         alignItems: 'center',
         width: '15%',
+    },
+    funtionalButtonContainer: {
+        flexDirection: 'column',
+        position: 'absolute',
+        flex: 1,
+        top: '3%',
+        left: '0%',
+        alignItems: 'center',
     },
 });

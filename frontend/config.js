@@ -1,8 +1,11 @@
-let ROOT = "http://ec2-52-14-55-110.us-east-2.compute.amazonaws.com:3000/";
+let ROOT = "http://ec2-3-21-76-36.us-east-2.compute.amazonaws.com:3000/";
 
 exports.ROOT = ROOT;
 exports.LOGIN = ROOT + "login";
 exports.REPORT = ROOT + "report";
+exports.TEST = ROOT + "test";
+exports.PREDICT = ROOT + "predict";
+exports.IMAGE = ROOT + "image";
 
 let typeCount = {
     'ARSON': 0,
@@ -30,3 +33,6 @@ exports.buttonNames = buttonNames;
 
 let iconNames = ['knife', 'drupal', 'kabaddi', 'home-alert', 'tea', 'karate', 'fire', 'garage-alert']
 exports.iconNames = iconNames;
+
+let attachments = [];
+exports.attachments = attachments;

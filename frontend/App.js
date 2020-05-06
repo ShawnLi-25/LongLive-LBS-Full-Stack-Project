@@ -7,6 +7,7 @@ import UserSetting from './components/UserSetting';
 import ReportForm from './components/ReportForm';
 import UpdateForm from './components/UpdateForm';
 import DeleteForm from './components/DeleteForm';
+import SearchView from './components/SearchView';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createDrawerNavigator,
@@ -14,7 +15,7 @@ import {
   DrawerItemList,
   DrawerItem,
 } from '@react-navigation/drawer';
-
+console.disableYellowBox = true;
 function LoginScreen({ navigation }) {
   return (
     <LoginForm navigation={navigation} />
@@ -48,7 +49,9 @@ function UpdateScreen({ navigation }) {
 function DeleteScreen({ navigation }) {
   return <DeleteForm navigation={navigation}/>
 }
-
+function SearchScreen({ navigation }) {
+  return <SearchView navigation={navigation} />
+}
 const Drawer = createDrawerNavigator();
 
 function UserProfileDrawer() {
@@ -61,6 +64,7 @@ function UserProfileDrawer() {
       <Drawer.Screen name="Delete" component={DeleteScreen} />
       <Drawer.Screen name="Setting" component={SettingScreen} />
       <Drawer.Screen name="Help" component={HelpScreen} />
+      <Drawer.Screen name="List" component={SearchScreen} />
     </Drawer.Navigator>
   );
 }
