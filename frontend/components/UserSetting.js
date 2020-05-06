@@ -12,8 +12,13 @@ export default class UserSetting extends React.Component {
     render() {
         return(
             <View>
-                <Header>
-                    <Icon name='close' onPress={() => { this.props.navigation.goBack(); }}></Icon></Header>
+                <Header placement='center'
+                    containerStyle={{
+                        backgroundColor: '#f1f1f1',
+                        justifyContent: 'space-around',
+                    }}>
+                    <Icon name='close' size={25} onPress={() => { this.props.navigation.goBack(); }}></Icon>
+                </Header>
                 <TouchableOpacity style={styles.userInfoUpdaeButtonStyle} >
                     <Text style={styles.textStyle}>Photo</Text>
                 </TouchableOpacity>
@@ -41,7 +46,7 @@ const styles = StyleSheet.create({
         shadowOffset: { height: 1, width: 1 }, // IOS
         shadowOpacity: 1, // IOS
         shadowRadius: 1, //IOS
-        backgroundColor: 'white',
+        backgroundColor: '#f1f1f1',
         elevation: 2, // Android
         height: 50,
         width: '100%',

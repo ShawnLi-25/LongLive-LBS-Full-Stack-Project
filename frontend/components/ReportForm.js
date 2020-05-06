@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
-import { Button, StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, FlatList} from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Dimensions} from 'react-native';
 import { Dropdown } from 'react-native-material-dropdown'
-import { Header, Icon } from 'react-native-elements'
+import { Header, Button } from 'react-native-elements'
 const crimeTypes = [{ value: 'HOMICIDE' }, { value: 'THEFT' }, { value: 'BATTERY' }, { value: 'CRIMINAL DAMAGE' }, { value: 'NARCOTICS' }, { value: 'ASSULT' }, { value: 'ARSON' }, { value: 'BURGLARY' }]
 import SERVER from '../config';
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
 import Constants from 'expo-constants';
-import * as FileSystem from 'expo-file-system';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default class ReportForm extends Component {
     constructor(props) {
@@ -20,13 +20,13 @@ export default class ReportForm extends Component {
             locationDescription: '',
             block: '',
             date: '',
+            email: '',
             attachment: null,
             primaryType: 'HOMICIDE',
             navigation: this.props.navigation,
             showScrollView: false,
         }
     }
-
 
     getPermissionAsync = async () => {
         if (Constants.platform.ios) {
@@ -54,91 +54,100 @@ export default class ReportForm extends Component {
             if (!result.cancelled) {
                 this.setState({ attachment: result });
             }
-        } catch (E) {
-            console.log(E);
+        } catch (err) {
+            console.log(err);
         }
         
     };
 
     submit = () => {
-        let UplodedFile = new FormData();
-        UplodedFile.append('img', { type: 'image/jpeg', uri: this.state.attachment.uri, name: 'user_uploaded.jpeg' });
-        UplodedFile.append('time', '00:00:00');
-        UplodedFile.append('latitude', 12345);
-        UplodedFile.append('longitude', 12345);
-        UplodedFile.append('email', 'abc@text.com');
-        UplodedFile.append('type', this.state.primaryType);
-        UplodedFile.append('description', this.state.crimeDescription);
-        fetch(SERVER.TEST, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'multipart/form-data',
-            },
-            body: UplodedFile,
-        }).then(response => {
-            if (response.status == 200) {
-                alert("success");
-            } else {
-                alert(response.status);
-            }
-            return response.json();
-        }).then((data) => {
-            console.log(data.reportID);
-        }) 
+        try {
+            let UplodedFile = new FormData();
+            UplodedFile.append('img', { type: 'image/jpeg', uri: this.state.attachment.uri, name: 'user_uploaded.jpeg' });
+            UplodedFile.append('time', '');
+            UplodedFile.append('latitude', 12345);
+            UplodedFile.append('longitude', 12345);
+            UplodedFile.append('email', 'abc@test.com');
+            UplodedFile.append('type', this.state.primaryType);
+            UplodedFile.append('description', this.state.crimeDescription);
+            fetch(SERVER.REPORT, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'multipart/form-data',
+                },
+                body: UplodedFile,
+            }).then(response => {
+                if (response.status == 200) {
+                    alert("success");
+                } else {
+                    alert(response.status);
+                }
+                return response.json();
+            }).then((data) => {
+                console.log(data.reportID);
+            })
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     render() {
         return(
             <View style={styles.container}>
-                <Header placement='left'>
-                    <Icon name='close' onPress={() => { this.props.navigation.goBack(); }}></Icon>
+                <Header placement='center' 
+                        containerStyle={{
+                            backgroundColor: '#f1f1f1',
+                            justifyContent: 'space-around',}}>
+                    <Icon name='close' size={25} onPress={() => { this.props.navigation.goBack(); }}></Icon>
                     <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#002f6c' }}>Report a Crime</Text>
                 </Header>
-                <Dropdown 
-                    label='Crime Type'
-                    data={crimeTypes}
-                    containerStyle={styles.dropdown}
-                    onChangeText={(type) => this.setState({ primaryType: type })}
-                />
-                <TextInput style={styles.inputBox}
-                    onChangeText={(crimeDescription) => this.setState({ crimeDescription })}
-                    underlineColorAndroid='rgba(0,0,0,0)'
-                    placeholder="Crime Description"
-                    placeholderTextColor="#002f6c"
-                    selectionColor="#fff"
-                    keyboardType="email-address"
-                    onSubmitEditing={() => this.password.focus()} />
-                <TextInput style={styles.inputBox}
-                    onChangeText={(reportedLocation) => this.setState({ reportedLocation })}
-                    underlineColorAndroid='rgba(0,0,0,0)'
-                    placeholder="Reported Location"
-                    placeholderTextColor="#002f6c"
-                    ref={(input) => this.password = input}
-                />
-                <TextInput style={styles.inputBox}
-                    onChangeText={(block) => this.setState({ block })}
-                    underlineColorAndroid='rgba(0,0,0,0)'
-                    placeholder="Block"
-                    placeholderTextColor="#002f6c"
-                    ref={(input) => this.password = input}
-                /> 
-                <TouchableOpacity style={styles.attachmentButton}>
-                    <Button
-                        title="Upload attachment"
-                        color='white'
-                        raised
-                        onPress={this.handleChooseAttachment}
+                <View style={styles.infoContainer}>
+                    <Dropdown 
+                        label='Crime Type'
+                        data={crimeTypes}
+                        containerStyle={styles.dropdown}
+                        onChangeText={(type) => this.setState({ primaryType: type })}
                     />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button}>
-                    <Button
-                        title="Submit"
-                        color='white'
-                        raised
-                        onPress={this.submit}
+                    <TextInput style={styles.inputBox}
+                        onChangeText={(crimeDescription) => this.setState({ crimeDescription })}
+                        underlineColorAndroid='rgba(0,0,0,0)'
+                        placeholder="Crime Description"
+                        placeholderTextColor="#002f6c"
+                        selectionColor="#fff"
+                        keyboardType="email-address"
+                        onSubmitEditing={() => this.password.focus()} />
+                    <TextInput style={styles.inputBox}
+                        onChangeText={(reportedLocation) => this.setState({ reportedLocation })}
+                        underlineColorAndroid='rgba(0,0,0,0)'
+                        placeholder="Reported Location"
+                        placeholderTextColor="#002f6c"
+                        ref={(input) => this.password = input}
                     />
-                </TouchableOpacity>
+                </View>
+                <View style={styles.attachmentButton}>
+                    <TouchableOpacity>
+                            <Button
+                                title="Upload attachment"
+                                type='clear'
+                                // loading
+                                titleStyle={{ color: "#002f6c"}}
+                                onPress={this.handleChooseAttachment}
+                                icon={<Icon style={{marginLeft: 10, marginRight: 5}}name='upload' size={30}/>}
+                            />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ paddingTop: Dimensions.get('window').height * 0.4 }}>
+                    <TouchableOpacity>
+                        <Button
+                            title="Submit"
+                            type='clear'
+                            raised
+                            onPress={this.submit}
+                            titleStyle={{ color: "#002f6c" }}
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
         );
     }
@@ -146,49 +155,26 @@ export default class ReportForm extends Component {
 
 
 const styles = StyleSheet.create({
-
     container: {
-        // marginTop: 100,
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: '#f1f1f1',
+    },
+    infoContainer: {
+        flexDirection: 'column',
     },
     inputBox: {
         width: '100%',
         height: 50,
         backgroundColor: '#eeeeee',
-        // borderRadius: 25,
         paddingHorizontal: 16,
         fontSize: 16,
         color: '#002f6c',
         marginVertical: 10,
-        
         textAlign: 'justify',
     },
     attachmentButton: {
-        width: '100%',
-        // marginTop: 160,
-        backgroundColor: '#4f83cc',
-        borderRadius: 24,
+        width: '50%',
         marginVertical: 10,
         paddingVertical: 12,
-        color: '#FFB6C1',
-    },
-
-    button: {
-        width: '100%',
-        // marginTop: 10,
-        backgroundColor: '#4f83cc',
-        borderRadius: 24,
-        marginVertical: 10,
-        paddingVertical: 12,
-        color: '#FFB6C1',
-
-    },
-    buttonText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#ffffff',
-        textAlign: 'center',
     },
     dropdown: {
         width: '100%',
@@ -197,10 +183,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         fontSize: 16,
         color: '#002f6c',
-        marginVertical: 10,
+        marginVertical: 15,
     }, 
-    flatlistStyle: {
-        flex: 1,
-        width: '100%',
-    }
 });

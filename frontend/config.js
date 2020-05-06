@@ -1,9 +1,10 @@
-let ROOT = "http://ec2-18-223-30-20.us-east-2.compute.amazonaws.com:3000/";
+let ROOT = "http://ec2-3-21-76-36.us-east-2.compute.amazonaws.com:3000/";
 
 exports.ROOT = ROOT;
 exports.LOGIN = ROOT + "login";
 exports.REPORT = ROOT + "report";
 exports.TEST = ROOT + "test";
+exports.PREDICT = ROOT + "predict";
 let typeCount = {
     'ARSON': 0,
     'ASSAULT': 0,
