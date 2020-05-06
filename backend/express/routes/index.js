@@ -33,6 +33,7 @@ router.post('/report', upload.none(), function (req, res) {
 });
 
 router.post('/report/upload', upload.single('img'), function (req, res) {
+    console.log(req.body)
     var imgData = fs.readFileSync(req.file.path, 'base64');
     fs.rename(req.file.path, req.file.path +'.jpg', function(err) {
         if (err) {
@@ -41,6 +42,7 @@ router.post('/report/upload', upload.single('img'), function (req, res) {
     });
 
     req.body.img = imgData;
+    req.body.imgPath = req.file.path +'.jpg';
     mysql.reportUserRecord(req, res);
 });
 

@@ -93,8 +93,7 @@ module.exports = {
         }
 
         var kmeans = new clusterfck_root.Kmeans();
-        var clusters = kmeans.cluster(predictionData, 16);
-        console.log("cluster done!");
+        var clusters = kmeans.cluster(predictionData, config.CLUSTER_NUM);
 
         var clusterTypes = [];
         for(let i = 0; i < clusters.length; ++i) {

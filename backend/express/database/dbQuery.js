@@ -35,9 +35,9 @@ var query = {
             });
     },
 
-    insertImage: function (collection, reportId, img, callback) {
+    insertImage: function (collection, content, callback) {
         collection.insertOne(
-            {_id: reportId, img: img},
+            {_id: content.reportId, img: content.img, imgPath: content.imgPath},
 
             (err, result) => {
                 if (err) {
@@ -105,8 +105,10 @@ var query = {
         });
     },
 
-    findOne: function (collection, callback) {
+    findOne: function (collection, id, callback) {
         collection.findOne(
+            {_id: id},
+
             (err, item) => {
                 if (err) {
                     console.log("MongoDB findOne Error" + err.message);

@@ -40,9 +40,8 @@ module.exports = {
             content.reportId = reportId;
 
             const imgCollection = db.collection('images');
-            await query.insertImage(imgCollection, content.reportId, content.img, function (_id) {
+            await query.insertImage(imgCollection, content, function (_id) {
                 console.log("Insert into Image ok!");
-                // content.imgIdx = _id;
             });
 
             const recordCollection = db.collection('userRecords');
@@ -96,6 +95,15 @@ module.exports = {
 
             const db = client.db(dbName);
             const imgCollection = db.collection('images');
+
+            await query.findOne(imgCollection, Number(reportId), function (result) {
+                // console.log("Get delete image path ok!" + result.imgPath);
+                fs.unlink(result.imgPath,function(err){
+                    if(err) return console.log(err);
+                    // console.log('Delete file on disk successfully');
+                });
+            });
+
             await query.deleteOne(imgCollection, Number(reportId), function (result) {
                 console.log("Delete Image ok!!");
             });
