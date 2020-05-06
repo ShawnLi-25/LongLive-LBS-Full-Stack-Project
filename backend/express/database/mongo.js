@@ -19,8 +19,8 @@ module.exports = {
 
             const db = client.db(dbName);
 
-            const bodyContent = req.body;
-            if (bodyContent == null || bodyContent.time == null || bodyContent.latitude == null || bodyContent.longitude == null || bodyContent.type == null) {
+            const content = req.body;
+            if (content == null || content.time == null || content.latitude == null || content.longitude == null || content.type == null) {
                 result = {
                     code: 400,
                     msg: 'Missing body content'
@@ -37,15 +37,16 @@ module.exports = {
                 };
                 return res.json(result);
             }
-            bodyContent.reportId = reportId;
+            content.reportId = reportId;
 
             const imgCollection = db.collection('images');
-            await query.insertImage(imgCollection, bodyContent.img, function (_id) {
+            await query.insertImage(imgCollection, content.reportId, content.img, function (_id) {
                 console.log("Insert into Image ok!");
+                // content.imgIdx = _id;
             });
 
             const recordCollection = db.collection('userRecords');
-            await query.insertUserRecordMongo(recordCollection, bodyContent, function (_id) {
+            await query.insertUserRecordMongo(recordCollection, content, function (_id) {
                 client.close();
                 console.log("insertUserRecord", _id, "ok!!");
                 result = {
@@ -58,7 +59,62 @@ module.exports = {
         })
     },
 
-    getImages: async function (req, res) {
+    updateReport: async function (req, res, reportId, params) {
+        await MongoClient.connect(url, {
+            useUnifiedTopology: true,
+            useNewUrlParser: true
+        }, async function (err, client) {
+            if (err) {
+                return console.error('Mongo Connection Error:' + err.message);
+            }
+            console.log("Connected successfully to server");
+
+            const db = client.db(dbName);
+            const recordCollection = db.collection('userRecords');
+            await query.updateUserRecordMongo(recordCollection, Number(reportId), params,  function (result) {
+                client.close();
+                console.log("Update UserRecord ok!!");
+                result = {
+                    code: 200,
+                    msg: 'Update report Succeed',
+                    result: result
+                };
+                return res.send(result);
+            });
+        })
+    },
+
+    deleteReport: async function (req, res, reportId) {
+        await MongoClient.connect(url, {
+            useUnifiedTopology: true,
+            useNewUrlParser: true
+        }, async function (err, client) {
+            if (err) {
+                return console.error('Mongo Connection Error:' + err.message);
+            }
+            console.log("Connected successfully to server");
+
+            const db = client.db(dbName);
+            const imgCollection = db.collection('images');
+            await query.deleteOne(imgCollection, Number(reportId), function (result) {
+                console.log("Delete Image ok!!");
+            });
+
+            const recordCollection = db.collection('userRecords');
+            await query.deleteOne(recordCollection, Number(reportId), function (result) {
+                client.close();
+                console.log("Delete UserRecord ok!!");
+                result = {
+                    code: 200,
+                    msg: 'Delete report Succeed',
+                    result: result
+                };
+                return res.send(result);
+            });
+        })
+    },
+
+    test: async function (req, res) {
         await MongoClient.connect(url, {
             useUnifiedTopology: true,
             useNewUrlParser: true

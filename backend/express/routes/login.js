@@ -61,7 +61,8 @@ passport.use('local-login', new LocalStrategy({
                 newUser.email = email;
                 newUser.password = hashedPassword;
 
-                connection.query(query.register, [email, hashedPassword], function (err, row) {
+                console.log(req.body);
+                connection.query(query.register, [email, hashedPassword, req.body.username, req.body.mobile], function (err, row) {
                     if(err)
                         return done(err);
                     newUser.id = row.insertId;
