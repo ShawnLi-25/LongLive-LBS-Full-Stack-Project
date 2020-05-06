@@ -11,7 +11,6 @@ let typeCount = SERVER.typeCount;
 let buttonNames = SERVER.buttonNames;
 let iconNames = SERVER.iconNames;
 let attachments = SERVER.attachments;
-
 let buttonPressedStatus = buttonStatusInit(buttonNames);
 let currentPressedButtons = [];
 let anyButtonPressed = false;
@@ -163,18 +162,17 @@ export default class MapPage extends React.Component {
     }
 
     searchAttachment = () => {
-        let UplodedInfo = new FormData();
-        UplodedInfo.append('search', 'images');
-        fetch(SERVER.TEST, {
+        console.log("search");
+        fetch(SERVER.IMAGE, {
             method: 'GET',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'multipart/form-data',
-            },
         }).then((response) => { 
-            // fs.downloadAsync(response, "attachment.jpeg", fs.EncodingType.Base64);
-            // return response.json();
-            // console.log("download finished");
+            return response.json();
+        }).then((list) => {
+            for (var i = 0; i < list.length; i++) {
+                attachments.push(list[i]);
+            }
+        }).then(() => {
+            this.state.navigation.navigate("List");
         })
     }
 

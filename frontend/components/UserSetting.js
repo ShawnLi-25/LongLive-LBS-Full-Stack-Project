@@ -1,6 +1,5 @@
 import React from 'react';
-import MapView, { Marker, PROVIDER_GOOGLE, Heatmap } from 'react-native-maps';
-import { Button, Header, Icon } from 'react-native-elements';
+import { Header, Icon } from 'react-native-elements';
 import { StyleSheet, Text, View, Dimensions, TouchableOpacity, TouchableHighlight } from 'react-native';
 export default class UserSetting extends React.Component {
     constructor(props) {
@@ -42,12 +41,12 @@ const styles = StyleSheet.create({
 
     },
     userInfoUpdaeButtonStyle: {
-        shadowColor: 'white', // IOS
-        shadowOffset: { height: 1, width: 1 }, // IOS
-        shadowOpacity: 1, // IOS
-        shadowRadius: 1, //IOS
+        shadowColor: 'white',
+        shadowOffset: { height: 1, width: 1 },
+        shadowOpacity: 1,
+        shadowRadius: 1,
         backgroundColor: '#f1f1f1',
-        elevation: 2, // Android
+        elevation: 2,
         height: 50,
         width: '100%',
         justifyContent: 'center',
@@ -57,7 +56,5 @@ const styles = StyleSheet.create({
     },
     textStyle: {
         color: '#808080'
-    
     }
-
 })
