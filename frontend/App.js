@@ -15,7 +15,7 @@ import {
   DrawerItemList,
   DrawerItem,
 } from '@react-navigation/drawer';
-
+console.disableYellowBox = true;
 function LoginScreen({ navigation }) {
   return (
     <LoginForm navigation={navigation} />

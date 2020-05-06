@@ -21,7 +21,7 @@ export default class DeleteForm extends Component {
             },
         }).then(response => {
             if (response.status == 200) {
-                alert("Success");w
+                alert("Success");
             } else {
                 alert("Failed: " + response.status);
             }
