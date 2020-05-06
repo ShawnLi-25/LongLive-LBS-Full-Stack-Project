@@ -10,7 +10,7 @@ export default class DeleteForm extends Component {
             navigation: this.props.navigation,
         }
     }
-
+    
     submit = () => {
         let requestURL = SERVER.REPORT + '/' + this.state.reportId;
         fetch(requestURL, {

@@ -60,17 +60,40 @@ export default class ReportForm extends Component {
         
     };
 
+    getRandomLoc = () => {
+        let lat_upper_bound = 42000, lat_lower_bound = 41800,
+        lng_upper_bound = 87800, lng_lower_bound = 87500;
+        let rand_lat = Math.floor(Math.random() * (lat_upper_bound - lat_lower_bound + 1) + lat_lower_bound) / 1000,
+        rand_lng = -Math.floor(Math.random() * (lng_upper_bound - lng_lower_bound + 1) + lng_lower_bound) / 1000;
+      return [rand_lat, rand_lng];
+    }
     submit = () => {
         try {
+            var randomLocation = this.getRandomLoc();
+            var randomLatitude = randomLocation[0];
+            var randomLongitude = randomLocation[1];
+            this.setState({ latitude: randomLatitude });
+            this.setState({ longitude: randomLongitude });
+            let time = new Date();
             let UplodedFile = new FormData();
-            UplodedFile.append('img', { type: 'image/jpeg', uri: this.state.attachment.uri, name: 'user_uploaded.jpeg' });
-            UplodedFile.append('time', '');
-            UplodedFile.append('latitude', 12345);
-            UplodedFile.append('longitude', 12345);
-            UplodedFile.append('email', 'abc@test.com');
+            UplodedFile.append('time', time);
+            UplodedFile.append('latitude', this.state.latitude);
+            UplodedFile.append('longitude', this.state.longitude);
+            UplodedFile.append('email', 'admin@test.com');
             UplodedFile.append('type', this.state.primaryType);
             UplodedFile.append('description', this.state.crimeDescription);
-            fetch(SERVER.REPORT, {
+            let reportEndPoint = SERVER.REPORT;
+            if (this.state.attachment) {
+                UplodedFile.append('img', 
+                { type: 'image/jpeg', 
+                  uri: this.state.attachment.uri, 
+                  name: 'user_uploaded.jpeg' });
+                reportEndPoint = SERVER.REPORT + '/upload';
+            } else {
+                UplodedFile.append('img');
+            }
+            
+            fetch(reportEndPoint, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',

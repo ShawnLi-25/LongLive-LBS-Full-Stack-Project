@@ -5,6 +5,8 @@ exports.LOGIN = ROOT + "login";
 exports.REPORT = ROOT + "report";
 exports.TEST = ROOT + "test";
 exports.PREDICT = ROOT + "predict";
+exports.IMAGE = ROOT + "image";
+
 let typeCount = {
     'ARSON': 0,
     'ASSAULT': 0,
@@ -32,5 +34,5 @@ exports.buttonNames = buttonNames;
 let iconNames = ['knife', 'drupal', 'kabaddi', 'home-alert', 'tea', 'karate', 'fire', 'garage-alert']
 exports.iconNames = iconNames;
 
-let attachments = null;
+let attachments = [];
 exports.attachments = attachments;
