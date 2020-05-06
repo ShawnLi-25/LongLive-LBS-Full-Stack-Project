@@ -148,6 +148,7 @@ export default class MapPage extends React.Component {
                     })
             })
         }
+    
     }
 
     createMarkerOnPress = (event) => {
@@ -172,6 +173,7 @@ export default class MapPage extends React.Component {
                 attachments.push(list[i]);
             }
         }).then(() => {
+            // console.log(attachments);
             this.state.navigation.navigate("List");
         })
     }
