@@ -11,9 +11,11 @@ let typeCount = SERVER.typeCount;
 let buttonNames = SERVER.buttonNames;
 let iconNames = SERVER.iconNames;
 let attachments = SERVER.attachments;
+
 let buttonPressedStatus = buttonStatusInit(buttonNames);
 let currentPressedButtons = [];
 let anyButtonPressed = false;
+
 
 function buttonStatusInit (names) {
     let buttonPressedStatusList = [];
@@ -112,7 +114,6 @@ export default class MapPage extends React.Component {
             }
             this.setState({ crimeTypeCount: fetchedCrimeTypeCount })
         });
-        console.log("zoom", zoom);
         let requestPointsURL = "";
         if (!anyButtonPressed) {
             requestPointsURL = `${SERVER.ROOT}getNearbyEvents/heatmap?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&latDelta=${currentRegion.latitudeDelta}&lngDelta=${currentRegion.longitudeDelta}&year=${year}&month=${2}`;
@@ -178,15 +179,33 @@ export default class MapPage extends React.Component {
     }
 
     getPrediction = () => {
-        let type = "HOMICIDE";
-        Popup.show({
-            type: 'Warning',
-            title: 'Prediction Complete',
-            button: true,
-            textBody: `The predicted crime type is ${type}`,
-            buttontext: 'Ok',
-            callback: () => Popup.hide()
-        })
+
+        let newDate = new Date();
+        let month = newDate.getMonth() + 1;
+        let hour = newDate.getHours();
+
+        const currentRegion = this.state.currentRegion;
+        
+        let requestPredictionURL = `${SERVER.PREDICT}/?latitude=${currentRegion.latitude}&longitude=${currentRegion.longitude}&month=${month}&hour=${hour}`;
+
+        fetch(requestPredictionURL, { method: 'GET' })
+            .then((response) => { return response.json(); })
+            .then((predictedCrimeType) => {
+                console.log(predictedCrimeType.length);
+                let types = "\n";
+                for (var i = 0; i < predictedCrimeType.length; i++) {
+                    console.log(predictedCrimeType[i][0]);
+                    types = types.concat(predictedCrimeType[i][0] + "\n");
+                }
+                Popup.show({
+                    type: 'Warning',
+                    title: 'Prediction Complete',
+                    button: true,
+                    textBody: `The top ${predictedCrimeType.length} predicted crime types about to happen are ${types}`,
+                    buttontext: 'Ok',
+                    callback: () => Popup.hide()
+                })
+            })
     }
     render() {
         let crimeTypeCount = this.state.crimeTypeCount;
