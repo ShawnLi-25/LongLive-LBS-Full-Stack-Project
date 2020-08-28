@@ -11,15 +11,10 @@
 /frontend/*.orig.*
 /frontend/web-build/
 /frontend/web-report/
-/frontend/package-lock.json
-/frontend/package.json
-
 /frontend/# macOS
 /frontend/.DS_Store
 
 /backend/express/node_modules/**/*
-/backend/express/package.json
-/backend/express/package-lock.json
 /backend/express/cookie.txt
 /backend/express/sessions
 /backend/express/config/mysqlConn.js
